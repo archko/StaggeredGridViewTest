@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StgStaggeredGridView">
+        <attr name="stgDrawSelectorOnTop" format="boolean"/>
+        <attr name="stgNumColumns" format="integer"/>
+    </declare-styleable>
+</resources>

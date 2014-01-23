@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="StaggeredGridView">
+
+        <!-- Number of columns displayed in StaggeredGridView -->
+        <attr name="columnCount" format="integer"/>
+
+        <!-- Set mode for the StaggeredGridView. -->
+        <attr name="mode" format="string"/>
+
+    </declare-styleable>
+
+</resources>

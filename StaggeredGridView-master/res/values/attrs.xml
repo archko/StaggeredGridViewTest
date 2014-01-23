@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ohsujinStaggeredGridView">
+        <attr name="ohsujinDrawSelectorOnTop" format="boolean"/>
+        <attr name="ohsujinNumColumns" format="integer"/>
+        <attr name="ohsujinItemMargin" format="dimension"/>
+    </declare-styleable>
+</resources>

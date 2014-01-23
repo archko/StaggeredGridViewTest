@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.me.archko.staggered"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <application
+        android:theme="@style/AppTheme"
+        android:name="com.mani.staggeredview.demo.app.StaggeredDemoApplication"
+        android:label="@string/app_name" android:icon="@drawable/ic_launcher">
+
+        <!--<activity android:name="StaggeredActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>-->
+
+        <activity
+            android:name="com.mani.staggeredview.demo.MainActivity"
+            android:label="view/staggered/smanikandan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.mani.staggeredview.demo.PictureActivity"
+            android:screenOrientation="portrait"/>
+
+        <!-- androidstaggeredgrid -->
+        <activity android:name="com.etsy.android.sample.MainActivity"
+            android:label="view/staggered/androidstaggeredgrid">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.etsy.android.sample.StaggeredGridActivity"/>
+        <activity android:name="com.etsy.android.sample.StaggeredGridEmptyViewActivity"/>
+        <activity android:name="com.etsy.android.sample.ListViewActivity"/>
+
+        <!-- STGV -->
+        <activity android:name="com.bulletnoid.android.demo.MainActivity"
+            android:label="view/staggered/stgv">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.bulletnoid.android.demo.STGVActivity"
+            android:label="STGVActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.bulletnoid.android.demo.STGVWithPTRActivity"
+            android:label="STGVWithPTRActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity
+            android:name="com.example.staggeredgridviewdemo.MainActivity"
+            android:label="view/staggered/maurycyw">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

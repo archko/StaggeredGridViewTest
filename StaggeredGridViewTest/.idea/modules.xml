@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../AndroidStaggeredGridLibrary/AndroidStaggeredGridLibrary.iml" filepath="$PROJECT_DIR$/../AndroidStaggeredGridLibrary/AndroidStaggeredGridLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../StaggeredGridView-master/StaggeredGridView-master.iml" filepath="$PROJECT_DIR$/../StaggeredGridView-master/StaggeredGridView-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/StaggeredGridViewTest.iml" filepath="$PROJECT_DIR$/StaggeredGridViewTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bulletnoidStaggeredGridViewLibrary/bulletnoidStaggeredGridViewLibrary.iml" filepath="$PROJECT_DIR$/../bulletnoidStaggeredGridViewLibrary/bulletnoidStaggeredGridViewLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../maurycywStaggeredGridView/maurycywStaggeredGridView.iml" filepath="$PROJECT_DIR$/../maurycywStaggeredGridView/maurycywStaggeredGridView.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../smanikandan14library/smanikandan14library.iml" filepath="$PROJECT_DIR$/../smanikandan14library/smanikandan14library.iml" />
+    </modules>
+  </component>
+</project>
+
