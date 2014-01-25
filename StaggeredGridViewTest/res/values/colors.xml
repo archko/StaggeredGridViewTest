@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bg_black">#000000</color>
-	<color name="bg_transparent_80">#80000000</color>
+    <color name="bg_transparent_80">#80000000</color>
+
+    <!-- A transparent black -->
+    <color name="transparent">#ff000000</color>
+
+    <!-- A semi-transparent dark Holo shade of blue -->
+    <color name="holo_blue_dark">#ff0099cc</color>
 </resources>

@@ -8,9 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import com.bulletnoid.android.widget.StaggeredGridView.StaggeredGridView;
-import com.bulletnoid.android.widget.StaggeredGridViewDemo.R;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshStaggeredGridView;
+import com.me.archko.staggered.R;
 
 public class STGVWithPTRActivity extends Activity {
     PullToRefreshStaggeredGridView ptrstgv;

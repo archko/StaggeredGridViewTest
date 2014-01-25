@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.origamilabs.library.views2;
+package com.origamilabs.library.views;
 
 import android.annotation.TargetApi;
 import android.os.Build;

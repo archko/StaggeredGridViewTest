@@ -19,6 +19,7 @@ public class STGVActivity extends Activity {
         setContentView(R.layout.ac_stgv);
 
         stgv = (StaggeredGridView) findViewById(R.id.stgv);
+        stgv.setSelector(R.drawable.holo_selector);
 
         int margin = getResources().getDimensionPixelSize(R.dimen.stgv_margin);
 

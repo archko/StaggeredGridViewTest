@@ -1,4 +1,4 @@
-package com.origamilabs.library.views2;
+package com.origamilabs.library.views;
 
 /*
  * Copyright (C) 2012 The Android Open Source Project

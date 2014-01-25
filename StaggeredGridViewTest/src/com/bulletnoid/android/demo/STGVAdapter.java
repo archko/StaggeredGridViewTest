@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-import com.bulletnoid.android.widget.StaggeredGridViewDemo.R;
+import com.me.archko.staggered.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

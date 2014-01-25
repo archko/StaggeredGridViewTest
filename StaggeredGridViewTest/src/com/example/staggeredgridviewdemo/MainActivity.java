@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 
 import com.me.archko.staggered.R;
-import com.origamilabs.library.views2.StaggeredGridView;
+import com.origamilabs.library.views.StaggeredGridView;
 
 /**
  * 

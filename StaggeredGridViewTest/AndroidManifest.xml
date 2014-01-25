@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <application
         android:theme="@style/AppTheme"
         android:name="com.mani.staggeredview.demo.app.StaggeredDemoApplication"
@@ -65,9 +66,19 @@
             android:label="STGVWithPTRActivity"
             android:screenOrientation="portrait"/>
 
+        <!--maurycyw-->
         <activity
             android:name="com.example.staggeredgridviewdemo.MainActivity"
             android:label="view/staggered/maurycyw">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.example.staggeredgridviewdemo.MasterActivity"
+            android:label="view/staggered/maurycyw2">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
