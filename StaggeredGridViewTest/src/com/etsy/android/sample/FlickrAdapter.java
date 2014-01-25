@@ -31,6 +31,7 @@ public class FlickrAdapter extends BaseAdapter {
         mContext=context;
         mAppContext=app;
         mImageLoader=StaggeredDemoApplication.getImageLoader();
+        mItems=new ArrayList<FlickrImage>();
     }
 
     public void setItems(ArrayList<FlickrImage> mItems) {
@@ -62,7 +63,7 @@ public class FlickrAdapter extends BaseAdapter {
         if (convertView==null) {
             Holder holder=new Holder();
             view=View.inflate(mContext, R.layout.flickr_grid_item, null);
-            holder.img_content=(ImageView) view.findViewById(R.id.image);
+            holder.img_content=(ImageView) view.findViewById(R.id.imageView1);
             //holder.tv_info=(TextView) view.findViewById(R.id.tv_info);
 
             view.setTag(holder);

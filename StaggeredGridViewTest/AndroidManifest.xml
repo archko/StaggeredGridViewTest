@@ -92,5 +92,14 @@
                 <category android:name="archko.test"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.example.staggeredgridviewdemo.FlickrPictureActivity"
+            android:label="view/staggered/maurycyw_flickr">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
