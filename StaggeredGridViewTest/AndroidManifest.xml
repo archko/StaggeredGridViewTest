@@ -48,6 +48,14 @@
         <activity android:name="com.etsy.android.sample.StaggeredGridEmptyViewActivity"/>
         <activity android:name="com.etsy.android.sample.ListViewActivity"/>
 
+        <activity android:name="com.etsy.android.sample.StaggeredWithPictureActivity"
+            android:label="view/staggered/androidstaggeredWithPicture">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
         <!-- STGV -->
         <activity android:name="com.bulletnoid.android.demo.MainActivity"
             android:label="view/staggered/stgv">

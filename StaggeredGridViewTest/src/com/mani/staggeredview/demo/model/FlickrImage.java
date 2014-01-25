@@ -1,5 +1,6 @@
 package com.mani.staggeredview.demo.model;
 
+import java.io.Serializable;
 
 /**
  * Holds the data for Flickr photo that is used to display Flickr Images in ListViews.
@@ -7,8 +8,8 @@ package com.mani.staggeredview.demo.model;
  * @author Mani Selvaraj
  *
  */
-public class FlickrImage {
-
+public class FlickrImage implements Serializable{
+    public static final long serialVersionUID=-4899452726203839416L;
 	String id;
 	
 	String secret;
