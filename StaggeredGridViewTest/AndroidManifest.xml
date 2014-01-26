@@ -105,5 +105,14 @@
                 <category android:name="archko.test"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".huewupla.TestPlaActivity"
+            android:label="view/staggered/test_Pla">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

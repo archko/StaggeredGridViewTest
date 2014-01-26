@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="MaurycyStaggeredGridView">
-        <attr name="drawSelectorOnTop" format="boolean"/>
-        <attr name="numColumns" format="integer"/>
+        <attr name="maurycywDrawSelectorOnTop" format="boolean"/>
+        <attr name="maurycywNumColumns" format="integer"/>
     </declare-styleable>
 </resources>
