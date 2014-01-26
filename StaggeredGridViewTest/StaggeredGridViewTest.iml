@@ -11,8 +11,8 @@
   <component name="FacetManager">
     <facet type="android" name="Android">
       <configuration>
-	  <option name="CUSTOM_DEBUG_KEYSTORE_PATH" value="file://$MODULE_DIR$/debug.keystore" />
-	  </configuration>
+        <option name="CUSTOM_DEBUG_KEYSTORE_PATH" value="file://$MODULE_DIR$/debug.keystore" />
+      </configuration>
     </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_6" inherit-compiler-output="false">
