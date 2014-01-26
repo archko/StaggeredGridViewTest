@@ -75,4 +75,17 @@ public class FlickrImage implements Serializable{
 				+ "/" + getId() + "_" + getSecret() + "_b.jpg";
 		return imageUrl;
 	}
+
+    @Override
+    public String toString() {
+        return "FlickrImage{"+
+            "id='"+id+'\''+
+            ", url='"+getImageUrl()+'\''+
+            ", secret='"+secret+'\''+
+            ", server='"+server+'\''+
+            ", farm='"+farm+'\''+
+            ", title='"+title+'\''+
+            ", owner='"+owner+'\''+
+            '}';
+    }
 }

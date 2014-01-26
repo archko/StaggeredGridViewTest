@@ -8,4 +8,24 @@
 
     <!-- A semi-transparent dark Holo shade of blue -->
     <color name="holo_blue_dark">#ff0099cc</color>
+
+    <!--<drawable name="red">#7f00</drawable>-->
+    <drawable name="blue">#770000ff</drawable>
+    <drawable name="green">#7700ff00</drawable>
+    <drawable name="yellow2">#77ffff00</drawable>
+
+    <!-- AndroidDevelopers colors -->
+    <color name="android_green">#FFA4C639</color>
+    <color name="honeycombish_blue">#FF58BAED</color>
+    <color name="soft_grey">#FF777777</color>
+    <color name="background">#FFEFEFEF</color>
+
+    <!-- view holo background-->
+    <color name="holo_dark_end">#ff272d33</color>
+    <color name="holo_light_start">#ffe8e8e8</color>
+
+    <color name="btn_default_normal_holo_dark_color">#FFD6D6D6</color>
+    <color name="btn_default_normal_holo_dark_color2">#FFB0B0B0</color>
+
+    <color name="gridview_bg">#ffd6d8e3</color>
 </resources>

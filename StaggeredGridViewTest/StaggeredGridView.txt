@@ -1,0 +1,9 @@
+这几种瀑布流的实现都有其局限性,比如一定要知道图片的高与宽.比如一些点击处理失败,或者位置不对等.
+其中以maurycywStaggeredGridView为原型修改的较多,因为它实现了自己的ViewGroup.
+不管是修改过的(StaggeredGridView-master),还是未修改过的(maurycywStaggeredGridView).都存在一个问题,滚动到下方,再回来,右边顶部无法对齐.
+测试了各种行为之后,瀑布流的实现,与展示,是比较难的.PinterestLikeAdapterView的问题就是滚动到底部,再回来,无法确定位置.更糟糕一些.
+smanikandan14StaggeredGridView,是LinearLayout实现的,在一个滚动的View中,添加Layout,不处理视图的回收,所以内存占用方面,需要使用者更多地考虑.
+bulletnoidStaggeredGridView,StaggeredGridView-master,maurycywStaggeredGridView都是maurycywStaggeredGridView的变种.
+AndroidStaggeredGrid是通过AbsListView的子类实现的.与PinterestLikeAdapterView较相似.
+
+

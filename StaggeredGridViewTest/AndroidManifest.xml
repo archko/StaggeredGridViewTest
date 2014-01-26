@@ -101,5 +101,17 @@
                 <category android:name="archko.test"/>
             </intent-filter>
         </activity>
+
+        <!-- test activity -->
+        <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|keyboardHidden|locale"/>
+        <activity
+            android:name=".maurycyw.TestMasterActivity"
+            android:label="view/staggered/test_maurycyw">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
