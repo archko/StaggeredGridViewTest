@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-import com.andrew.apollo.cache.ImageFetcher;
 import com.andrew.apollo.utils.ApolloUtils;
 import com.android.volley.AuthFailureError;
 import com.android.volley.ClientError;
@@ -19,12 +18,12 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
-import com.etsy.android.sample.StaggeredWithPictureActivity;
 import com.mani.staggeredview.demo.app.StaggeredDemoApplication;
 import com.mani.staggeredview.demo.model.FlickrGetImagesResponse;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
 import com.mani.staggeredview.demo.volley.GsonRequest;
+import com.me.archko.staggered.utils.Util;
 
 import java.io.File;
 
@@ -70,7 +69,7 @@ public class BaseFlickrPictureActivity extends Activity {
     }
 
     public void flickerGetImagesRequest() {
-        final File f=new File(this.getFilesDir().getPath()+File.separator+StaggeredWithPictureActivity.FLICKR_PHOTO);
+        final File f=new File(this.getFilesDir().getPath()+File.separator+Util.FLICKR_PHOTO);
         if (f.exists()) {
             FlickrResponsePhotos responsePhotos=(FlickrResponsePhotos) Utils.deserializeObject(f.getAbsolutePath());
             if (responsePhotos!=null) {

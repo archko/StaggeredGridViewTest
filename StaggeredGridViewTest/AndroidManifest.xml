@@ -48,14 +48,6 @@
         <activity android:name="com.etsy.android.sample.StaggeredGridEmptyViewActivity"/>
         <activity android:name="com.etsy.android.sample.ListViewActivity"/>
 
-        <activity android:name="com.etsy.android.sample.StaggeredWithPictureActivity"
-            android:label="view/staggered/androidstaggeredWithPicture">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="archko.test"/>
-            </intent-filter>
-        </activity>
-
         <!-- STGV -->
         <activity android:name="com.bulletnoid.android.demo.MainActivity"
             android:label="view/staggered/stgv">
@@ -93,21 +85,21 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.example.staggeredgridviewdemo.FlickrPictureActivity"
-            android:label="view/staggered/maurycyw_flickr">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="archko.test"/>
-            </intent-filter>
-        </activity>
-
         <!-- test activity -->
         <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
             android:configChanges="orientation|screenSize|keyboardHidden|locale"/>
         <activity
             android:name=".maurycyw.TestMasterActivity"
             android:label="view/staggered/test_maurycyw">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".etsy.TestEtsyActivity"
+            android:label="view/staggered/test_etsy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>

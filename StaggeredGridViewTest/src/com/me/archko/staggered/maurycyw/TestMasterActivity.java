@@ -10,6 +10,7 @@ import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
 import com.me.archko.staggered.BaseFlickrPictureActivity;
 import com.me.archko.staggered.PictureViewerActivity;
 import com.me.archko.staggered.R;
+import com.me.archko.staggered.utils.Util;
 import com.origamilabs.library.views2.StaggeredGridView;
 
 import java.util.ArrayList;
@@ -44,11 +45,9 @@ public class TestMasterActivity extends BaseFlickrPictureActivity {
         mStaggeredGridView.setOnItemClickListener(new StaggeredGridView.OnItemClickListener() {
             @Override
             public void onItemClick(StaggeredGridView parent, View view, int position, long id) {
-                Intent intent=new Intent(TestMasterActivity.this, PictureViewerActivity.class);
                 FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
                 Log.d("", "item:"+position+" image:"+flickrImage);
-                intent.putExtra(PictureViewerActivity.IMAGE_URL, flickrImage.getImageUrl());
-                startActivity(intent);
+                Util.startPictureViewer(flickrImage.getImageUrl(), TestMasterActivity.this);
             }
         });
 

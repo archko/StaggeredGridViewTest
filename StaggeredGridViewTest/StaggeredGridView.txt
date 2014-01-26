@@ -5,5 +5,5 @@
 smanikandan14StaggeredGridView,是LinearLayout实现的,在一个滚动的View中,添加Layout,不处理视图的回收,所以内存占用方面,需要使用者更多地考虑.
 bulletnoidStaggeredGridView,StaggeredGridView-master,maurycywStaggeredGridView都是maurycywStaggeredGridView的变种.
 AndroidStaggeredGrid是通过AbsListView的子类实现的.与PinterestLikeAdapterView较相似.
-
+	但是它的位置计算不正确.需要修正的.
 
