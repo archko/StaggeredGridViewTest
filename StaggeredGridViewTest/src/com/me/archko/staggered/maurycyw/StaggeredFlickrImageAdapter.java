@@ -54,6 +54,9 @@ public class StaggeredFlickrImageAdapter extends BaseAdapter {
             convertView=layoutInflator.inflate(R.layout.test_row_staggered_demo, null);
             holder=new ViewHolder();
             holder.imageView=(ScaleImageView) convertView.findViewById(R.id.imageView1);
+            if (ApolloUtils.hasHoneycomb()) {
+                holder.imageView.setLayerType(View.LAYER_TYPE_NONE, null);
+            }
             holder.txt=(TextView) convertView.findViewById(R.id.txt);
             convertView.setTag(holder);
         }

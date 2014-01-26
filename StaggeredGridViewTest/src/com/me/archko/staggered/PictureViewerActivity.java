@@ -1,7 +1,9 @@
 package com.me.archko.staggered;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -19,6 +21,7 @@ public class PictureViewerActivity extends Activity {
     private ImageView mClose;
     public static final String IMAGE_URL="image_url";
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -26,6 +29,9 @@ public class PictureViewerActivity extends Activity {
         mPicture=(ZoomImageView) findViewById(R.id.image);
         mClose=(ImageView) findViewById(R.id.close);
         mPicture.setAdjustViewBounds(false);
+        if (ApolloUtils.hasHoneycomb()) {
+            mPicture.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
 
         String imageUrl=null;
         Bundle b=getIntent().getExtras();

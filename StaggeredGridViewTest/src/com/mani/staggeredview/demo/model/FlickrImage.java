@@ -1,5 +1,7 @@
 package com.mani.staggeredview.demo.model;
 
+import android.text.TextUtils;
+
 import java.io.Serializable;
 
 /**
@@ -21,6 +23,8 @@ public class FlickrImage implements Serializable{
 	String title;
 
 	String owner;
+
+    public String url;
 	
 	public String getId() {
 		return id;
@@ -71,10 +75,14 @@ public class FlickrImage implements Serializable{
 	}
 
 	public String getImageUrl() {
-		String imageUrl = "http://farm" + getFarm() + ".static.flickr.com/" + getServer()
-				+ "/" + getId() + "_" + getSecret() + "_b.jpg";
-		return imageUrl;
-	}
+        if (TextUtils.isEmpty(url)) {
+            String imageUrl = "http://farm" + getFarm() + ".static.flickr.com/" + getServer()
+                    + "/" + getId() + "_" + getSecret() + "_b.jpg";
+            return imageUrl;
+        } else {
+            return url;
+        }
+    }
 
     @Override
     public String toString() {

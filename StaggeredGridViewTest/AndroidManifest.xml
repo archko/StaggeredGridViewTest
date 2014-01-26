@@ -98,6 +98,15 @@
         </activity>
 
         <activity
+            android:name=".maurycyw.TestMasterLocalActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_maurycyw_local">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".etsy.TestEtsyActivity"
             android:label="view/staggered/test_etsy">
             <intent-filter>

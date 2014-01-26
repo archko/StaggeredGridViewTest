@@ -72,13 +72,24 @@ public class ImageFetcher extends ImageWorker {
         if (url == null) {
             return null;
         }
-        final File file = downloadBitmapToFile(mContext, url, DEFAULT_HTTP_CACHE_DIR);
-        if (file != null) {
-            // Return a sampled down version
-            final Bitmap bitmap = decodeSampledBitmapFromFile(file.toString());
-            file.delete();
-            if (bitmap != null) {
-                return bitmap;
+        if (url.startsWith("http:")) {
+            final File file = downloadBitmapToFile(mContext, url, DEFAULT_HTTP_CACHE_DIR);
+            if (file != null) {
+                // Return a sampled down version
+                final Bitmap bitmap = decodeSampledBitmapFromFile(file.toString());
+                file.delete();
+                if (bitmap != null) {
+                    return bitmap;
+                }
+            }
+        } else if (url.startsWith("file")||url.startsWith("/")){
+            final File file = new File(url);
+            if (file != null) {
+                // Return a sampled down version
+                final Bitmap bitmap = decodeSampledBitmapFromFile(file.toString());
+                if (bitmap != null) {
+                    return bitmap;
+                }
             }
         }
         return null;
