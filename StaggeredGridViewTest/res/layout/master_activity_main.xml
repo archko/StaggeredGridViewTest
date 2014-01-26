@@ -9,7 +9,7 @@
     <com.origamilabs.library.views2.StaggeredGridView
         android:id="@+id/staggeredGridView1"
         staggered:ohsujinNumColumns="2"
-        staggered:ohsujinDrawSelectorOnTop="true"
+        staggered:ohsujinDrawSelectorOnTop="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" /> 
 
