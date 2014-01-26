@@ -2,14 +2,14 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/container"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" 
+    android:layout_height="fill_parent"
     android:background="@drawable/bg_grid_item">
 
     <ImageView
         android:id="@+id/image" android:adjustViewBounds="false"
-	    android:layout_width="fill_parent"
-	    android:layout_height="200dp"
-	    android:minHeight="50dp"
-	    android:scaleType="fitXY"/>
-    
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:scaleType="centerCrop"/>
+
 </FrameLayout>    

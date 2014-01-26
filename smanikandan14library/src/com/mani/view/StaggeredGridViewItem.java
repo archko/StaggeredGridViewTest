@@ -10,4 +10,11 @@ public abstract class StaggeredGridViewItem {
 
     public abstract int getViewHeight(LayoutInflater inflater, ViewGroup parent);
 
+    public void load(){
+
+    }
+
+    public void unload(){
+
+    }
 }

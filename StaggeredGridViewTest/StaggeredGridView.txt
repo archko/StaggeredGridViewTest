@@ -7,3 +7,5 @@ bulletnoidStaggeredGridView,StaggeredGridView-master,maurycywStaggeredGridView都
 AndroidStaggeredGrid是通过AbsListView的子类实现的.与PinterestLikeAdapterView较相似.
 	但是它的位置计算不正确.需要修正的.MultiColumnListView也是一样,从内容上看,前者是抄袭后者的,所以位置计算也是不对.
 
+发现一个比较严重的问题,smanikandan14library的实现方式与迷尚美图类似,但是它没有处理回收,所以如果以原程序的方式,在加载布局时,就加载了图片,会导致内存不足.而如果处理了回收的问题,动态添加布局,就有一个问题了.因为原程序在添加子元素时,就已经知道了高,所以重新计算,需要重新得到高的和.如果滚动中一直计算这个,性能好坏未知.如何有效的处理回收的问题,也是个麻烦的事.
+	

@@ -34,9 +34,9 @@ import java.io.File;
  */
 public class BaseFlickrPictureActivity extends Activity {
 
-    private ProgressDialog mProgress;
+    protected ProgressDialog mProgress;
     private final String TAG_REQUEST="BaseFlickrPictureActivity";
-    private boolean isLoading=false;
+    public boolean isLoading=false;
     protected GsonRequest<FlickrResponsePhotos> gsonObjRequest;
     protected int currPage=1;
     protected RequestQueue mVolleyQueue;

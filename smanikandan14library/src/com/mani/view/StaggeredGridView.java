@@ -92,8 +92,6 @@ public class StaggeredGridView extends ScrollView {
         }
     }
 
-    ;
-
     private OnScrollListener mScrollListener;
     private Mode mMode=Mode.FIXED;
 
@@ -116,13 +114,12 @@ public class StaggeredGridView extends ScrollView {
 
         for (int i=0; i<indexCount; i++) {
             int attr=typedArray.getIndex(i);
-            switch (attr) {
-                case R.styleable.StaggeredGridView_columnCount:
-                    count=typedArray.getInteger(attr, -1);
-                    break;
-                case R.styleable.StaggeredGridView_mode:
-                    modeattr=typedArray.getString(R.styleable.StaggeredGridView_mode);
-                    break;
+            if (attr==R.styleable.StaggeredGridView_columnCount) {
+                count=typedArray.getInteger(attr, -1);
+
+            } else if (attr==R.styleable.StaggeredGridView_mode) {
+                modeattr=typedArray.getString(R.styleable.StaggeredGridView_mode);
+
             }
         }
 
@@ -173,7 +170,7 @@ public class StaggeredGridView extends ScrollView {
 
             mGridLayouts.add(itemLayout);
             mTopLayout.addView(itemLayout);
-            mItemsHeight.add(Integer.valueOf(i));
+            mItemsHeight.add(i);
         }
 
         mOnGlobalLayoutChangeListener=new OnGlobalLayoutListener() {
@@ -203,7 +200,7 @@ public class StaggeredGridView extends ScrollView {
         for (int i=0; i<mColumns; i++) {
             LinearLayout layout=mGridLayouts.get(i);
             layout.removeAllViews();
-            mItemsHeight.add(Integer.valueOf(0));
+            mItemsHeight.add(0);
         }
 
         this.smoothScrollTo(0, 0);
@@ -226,8 +223,7 @@ public class StaggeredGridView extends ScrollView {
         super.onScrollChanged(x, y, oldX, oldY);
 
         if (Math.abs(y-oldY)<2||
-            y+getHeight()>=mTopLayout.getMeasuredHeight()||
-            y<=SCROLL_OFFSET+1) {
+            y+getHeight()>=mTopLayout.getMeasuredHeight()||y<=SCROLL_OFFSET+1) {
             if (mScrollListener!=null) {
                 if (y<=SCROLL_OFFSET+1) {
                     mScrollListener.onTop();
@@ -367,7 +363,7 @@ public class StaggeredGridView extends ScrollView {
 
         final View itemView=item.getView(inflater, parent);
         itemView.setClickable(true);
-        itemView.setTag(Integer.valueOf(parent.getChildCount()+1));
+        itemView.setTag(parent.getChildCount()+1);
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         params.topMargin=10;
         parent.addView(itemView, params);

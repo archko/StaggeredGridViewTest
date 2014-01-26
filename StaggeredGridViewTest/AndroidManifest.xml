@@ -22,21 +22,21 @@
             </intent-filter>
         </activity>-->
 
-        <activity
+        <!--<activity
             android:name="com.mani.staggeredview.demo.MainActivity"
             android:label="view/staggered/smanikandan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
             </intent-filter>
-        </activity>
+        </activity>-->
 
         <activity
             android:name="com.mani.staggeredview.demo.PictureActivity"
             android:screenOrientation="portrait"/>
 
         <!-- androidstaggeredgrid -->
-        <activity android:name="com.etsy.android.sample.MainActivity"
+        <!--<activity android:name="com.etsy.android.sample.MainActivity"
             android:label="view/staggered/androidstaggeredgrid">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -46,10 +46,10 @@
 
         <activity android:name="com.etsy.android.sample.StaggeredGridActivity"/>
         <activity android:name="com.etsy.android.sample.StaggeredGridEmptyViewActivity"/>
-        <activity android:name="com.etsy.android.sample.ListViewActivity"/>
+        <activity android:name="com.etsy.android.sample.ListViewActivity"/>-->
 
         <!-- STGV -->
-        <activity android:name="com.bulletnoid.android.demo.MainActivity"
+        <!--<activity android:name="com.bulletnoid.android.demo.MainActivity"
             android:label="view/staggered/stgv">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -64,10 +64,10 @@
         <activity
             android:name="com.bulletnoid.android.demo.STGVWithPTRActivity"
             android:label="STGVWithPTRActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"/>-->
 
         <!--maurycyw-->
-        <activity
+        <!--<activity
             android:name="com.example.staggeredgridviewdemo.MainActivity"
             android:label="view/staggered/maurycyw">
             <intent-filter>
@@ -83,7 +83,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
             </intent-filter>
-        </activity>
+        </activity>-->
 
         <!-- test activity -->
         <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
@@ -109,6 +109,15 @@
         <activity
             android:name=".huewupla.TestPlaActivity"
             android:label="view/staggered/test_Pla">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".mani.TestManiActivity"
+            android:label="view/staggered/test_smani">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
