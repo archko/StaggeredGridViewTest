@@ -389,7 +389,9 @@ public final class ImageCache {
                 if (snapshot != null) {
                     inputStream = snapshot.getInputStream(DISK_CACHE_INDEX);
                     if (inputStream != null) {
-                        final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        BitmapFactory.Options options=new BitmapFactory.Options();
+                        options.inPreferredConfig=Bitmap.Config.RGB_565;
+                        final Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
                         if (bitmap != null) {
                             return bitmap;
                         }

@@ -26,6 +26,7 @@ import com.mani.staggeredview.demo.volley.GsonRequest;
 import com.me.archko.staggered.utils.Util;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * This base activity ,prepare list dataset for staggeredgridview,using flickr api
@@ -148,13 +149,16 @@ public class BaseFlickrPictureActivity extends Activity {
         Toast.makeText(BaseFlickrPictureActivity.this, msg, Toast.LENGTH_LONG).show();
     }
 
-    public void parseFlickrImageResponse(FlickrResponsePhotos response) {
+    public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
         Log.d(TAG_REQUEST, "parseFlickrImageResponse:");
+        ArrayList<FlickrImage> list=new ArrayList<FlickrImage>();
         FlickrGetImagesResponse photos=response.getPhotos();
         for (int index=0; index<photos.getPhotos().size(); index++) {
 
             FlickrImage flkrImage=photos.getPhotos().get(index);
-            Log.d(TAG_REQUEST, "flkrImage:"+flkrImage);
+            list.add(flkrImage);
         }
+
+        return null;
     }
 }

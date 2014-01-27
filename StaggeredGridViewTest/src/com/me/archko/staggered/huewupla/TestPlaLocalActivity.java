@@ -6,15 +6,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import com.andrew.apollo.cache.ImageCache;
 import com.huewu.pla.lib.MultiColumnListView;
+import com.huewu.pla.lib.internal.PLA_AbsListView;
 import com.huewu.pla.lib.internal.PLA_AbsListView.LayoutParams;
 import com.huewu.pla.lib.internal.PLA_AdapterView;
-import com.mani.staggeredview.demo.model.FlickrGetImagesResponse;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
 import com.me.archko.staggered.BaseFlickrPictureActivity;
+import com.me.archko.staggered.BaseLocalActivity;
 import com.me.archko.staggered.R;
-import com.me.archko.staggered.etsy.SampleAdapter;
+import com.me.archko.staggered.maurycyw.StaggeredFlickrImageAdapter;
 import com.me.archko.staggered.utils.Util;
 
 import java.util.ArrayList;
@@ -22,21 +24,38 @@ import java.util.ArrayList;
 /**
  * @author archko
  */
-public class TestPlaActivity extends BaseFlickrPictureActivity {
+public class TestPlaLocalActivity extends BaseLocalActivity {
 
     private MultiColumnListView mAdapterView=null;
-    private SampleAdapter mAdapter=null;
+    private StaggeredFlickrImageAdapter mAdapter=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sample_act);
+        setContentView(R.layout.sample_act_local);
         //mAdapterView = (PLA_AdapterView<Adapter>) findViewById(R.id.list);
 
         mAdapterView=(MultiColumnListView) findViewById(R.id.list);
+        /*mAdapterView.setRecyclerListener(new RecycleHolder());
+        mAdapterView.setOnScrollListener(new PLA_AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(PLA_AbsListView view, int scrollState) {
+                if (scrollState==SCROLL_STATE_IDLE) {
+                    ImageCache.getInstance(TestPlaLocalActivity.this).setPauseDiskCache(false);
+                    mAdapter.notifyDataSetChanged();
+                } else {
+                    ImageCache.getInstance(TestPlaLocalActivity.this).setPauseDiskCache(true);
+                }
+            }
+
+            @Override
+            public void onScroll(PLA_AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            }
+        });*/
 
         {
-            for (int i=0; i<3; ++i) {
+            for (int i=0; i<2; ++i) {
                 //add header view.
                 TextView tv=new TextView(this);
                 tv.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -45,7 +64,7 @@ public class TestPlaActivity extends BaseFlickrPictureActivity {
             }
         }
         {
-            for (int i=0; i<3; ++i) {
+            for (int i=0; i<2; ++i) {
                 //add footer view.
                 TextView tv=new TextView(this);
                 tv.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -54,14 +73,14 @@ public class TestPlaActivity extends BaseFlickrPictureActivity {
             }
         }
 
-        mAdapter=new SampleAdapter(this);
+        mAdapter=new StaggeredFlickrImageAdapter(this);
         mAdapterView.setAdapter(mAdapter);
         mAdapterView.setOnItemClickListener(new PLA_AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(PLA_AdapterView<?> parent, View view, int position, long id) {
+                Log.d("", "item:"+position+" image:");
                 FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
-                Log.d("", "item:"+position+" image:"+flickrImage);
-                Util.startPictureViewer(flickrImage.getImageUrl(), TestPlaActivity.this);
+                Util.startPictureViewer(flickrImage.getImageUrl(), TestPlaLocalActivity.this);
             }
         });
         initData();
@@ -114,6 +133,7 @@ public class TestPlaActivity extends BaseFlickrPictureActivity {
         mAdapter.setDatas(list);
 
         mAdapter.notifyDataSetChanged();
+
         return null;
     }
 }//end of class

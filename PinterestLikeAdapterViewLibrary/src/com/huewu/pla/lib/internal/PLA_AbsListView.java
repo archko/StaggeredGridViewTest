@@ -1508,6 +1508,7 @@ public abstract class PLA_AbsListView extends PLA_AdapterView<ListAdapter> imple
                     case TOUCH_MODE_DONE_WAITING:
                         final int motionPosition=mMotionPosition;
                         final View child=getChildAt(motionPosition-mFirstPosition);
+                        System.out.println("child:"+child+" motionPosition:"+motionPosition);
                         if (child!=null&&!child.hasFocusable()) {
                             if (mTouchMode!=TOUCH_MODE_DOWN) {
                                 child.setPressed(false);
@@ -1519,7 +1520,7 @@ public abstract class PLA_AbsListView extends PLA_AdapterView<ListAdapter> imple
 
                             final PLA_AbsListView.PerformClick performClick=mPerformClick;
                             performClick.mChild=child;
-                            performClick.mClickMotionPosition=motionPosition;
+                            performClick.mClickMotionPosition=motionPosition-getHeaderViewsCount();
                             performClick.rememberWindowAttachCount();
 
                             mResurrectToPosition=motionPosition;

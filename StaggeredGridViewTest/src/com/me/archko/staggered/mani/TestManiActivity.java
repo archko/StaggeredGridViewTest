@@ -17,6 +17,8 @@ import com.mani.view.StaggeredGridViewItem;
 import com.me.archko.staggered.BaseFlickrPictureActivity;
 import com.me.archko.staggered.R;
 
+import java.util.ArrayList;
+
 /**
  * @author archko
  */
@@ -78,7 +80,7 @@ public class TestManiActivity extends BaseFlickrPictureActivity {
     }
 
     @Override
-    public void parseFlickrImageResponse(FlickrResponsePhotos response) {
+    public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
         FlickrGetImagesResponse photos=response.getPhotos();
         for (int index=0; index<photos.getPhotos().size(); index++) {
 
@@ -88,5 +90,7 @@ public class TestManiActivity extends BaseFlickrPictureActivity {
             item=new FlickrGridItem(this, flkrImage);
             mStaggeredView.addItem(item);
         }
+
+        return null;
     }
 }

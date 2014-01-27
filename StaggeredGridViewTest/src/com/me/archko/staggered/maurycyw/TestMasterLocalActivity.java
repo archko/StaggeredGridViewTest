@@ -1,33 +1,26 @@
 package com.me.archko.staggered.maurycyw;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import com.andrew.apollo.utils.ApolloUtils;
-import com.mani.staggeredview.demo.model.FlickrGetImagesResponse;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
-import com.me.archko.staggered.BaseFlickrPictureActivity;
+import com.me.archko.staggered.BaseLocalActivity;
 import com.me.archko.staggered.R;
 import com.me.archko.staggered.utils.Util;
 import com.origamilabs.library.views2.StaggeredGridView;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 
 /**
  * @author archko
  */
-public class TestMasterLocalActivity extends BaseFlickrPictureActivity {
+public class TestMasterLocalActivity extends BaseLocalActivity {
 
     StaggeredGridView mStaggeredGridView;
     StaggeredFlickrImageAdapter mAdapter;
-    ArrayList<File> mDataList=new ArrayList<File>();
 
     /**
      * This will not work so great since the heights of the imageViews
@@ -65,65 +58,13 @@ public class TestMasterLocalActivity extends BaseFlickrPictureActivity {
     }
 
     @Override
-    public void flickerGetImagesRequest() {
-        ApolloUtils.execute(false, new AsyncTask<Object, Object, Object>() {
-            @Override
-            protected Object doInBackground(Object... params) {
-                File dir=new File(Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture");
-                if (dir.exists()) {
-                    final int length=80;
-                    final int maxSize=1024000;
-                    final int minSize=30000;
-                    File[] files=dir.listFiles(new FileFilter() {
-                        @Override
-                        public boolean accept(File pathname) {
-                            int i=0;
-                            i++;
-                            if (i>length) {
-                                return false;
-                            }
-
-                            if (pathname.length()>minSize&&pathname.length()<maxSize) {
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                    if (files.length>0) {
-                        for (File f : files) {
-                            mDataList.add(f);
-                        }
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                stopProgress();
-                if (mDataList.size()>0) {
-                    parseFlickrImageResponse(null);
-                } else {
-                    showToast("init data failed.");
-                }
-            }
-        });
-    }
-
-    @Override
-    public void parseFlickrImageResponse(FlickrResponsePhotos response) {
-        ArrayList<FlickrImage> list=new ArrayList<FlickrImage>();
-        File tmp;
-        for (int index=0; index<mDataList.size(); index++) {
-            tmp=mDataList.get(index);
-            FlickrImage flkrImage=new FlickrImage();
-            flkrImage.setTitle(tmp.getAbsolutePath());
-            flkrImage.url=tmp.getAbsolutePath();
-            list.add(flkrImage);
-        }
+    public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
+        ArrayList<FlickrImage> list=super.parseFlickrImageResponse(response);
         mAdapter.setDatas(list);
 
         mAdapter.notifyDataSetChanged();
+
+        return null;
     }
 
     @Override

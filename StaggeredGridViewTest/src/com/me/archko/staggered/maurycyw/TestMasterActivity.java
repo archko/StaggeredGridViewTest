@@ -58,18 +58,12 @@ public class TestMasterActivity extends BaseFlickrPictureActivity {
     }
 
     @Override
-    public void parseFlickrImageResponse(FlickrResponsePhotos response) {
-        super.parseFlickrImageResponse(response);
-        ArrayList<FlickrImage> list=new ArrayList<FlickrImage>();
-        FlickrGetImagesResponse photos=response.getPhotos();
-        for (int index=0; index<photos.getPhotos().size(); index++) {
-
-            FlickrImage flkrImage=photos.getPhotos().get(index);
-            list.add(flkrImage);
-        }
+    public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
+        ArrayList<FlickrImage> list=super.parseFlickrImageResponse(response);
         mAdapter.setDatas(list);
 
         mAdapter.notifyDataSetChanged();
+        return null;
     }
 
     @Override

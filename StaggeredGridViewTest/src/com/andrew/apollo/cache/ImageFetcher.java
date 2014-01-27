@@ -36,7 +36,7 @@ public class ImageFetcher extends ImageWorker {
 
     private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1024;
 
-    private static final int DEFAULT_MAX_IMAGE_WIDTH = 1024;
+    private static final int DEFAULT_MAX_IMAGE_WIDTH = 720;
 
     private static final String DEFAULT_HTTP_CACHE_DIR = "http"; //$NON-NLS-1$
 
@@ -223,6 +223,7 @@ public class ImageFetcher extends ImageWorker {
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
+        options.inPreferredConfig=Bitmap.Config.RGB_565;
         return BitmapFactory.decodeFile(filename, options);
     }
 

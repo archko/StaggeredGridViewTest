@@ -92,12 +92,12 @@ public class SampleAdapter extends BaseAdapter {
             holder=(ViewHolder) convertView.getTag();
         }
 
-        double positionHeight=getPositionRatio(position);
+        /*double positionHeight=getPositionRatio(position);
         int backgroundIndex=position>=mBackgroundColors.size() ? position%mBackgroundColors.size() : position;
 
         convertView.setBackgroundResource(mBackgroundColors.get(backgroundIndex));
 
-        Log.d(TAG, "getView position:"+position+" h:"+positionHeight);
+        Log.d(TAG, "getView position:"+position+" h:"+positionHeight);*/
 
         FlickrImage flickrImage=(FlickrImage) getItem(position);
         //holder.txtLineOne.setHeightRatio(positionHeight);
