@@ -2,7 +2,9 @@ package com.me.archko.staggered;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -18,6 +20,7 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.google.gson.Gson;
 import com.mani.staggeredview.demo.app.StaggeredDemoApplication;
 import com.mani.staggeredview.demo.model.FlickrGetImagesResponse;
 import com.mani.staggeredview.demo.model.FlickrImage;
@@ -26,6 +29,8 @@ import com.mani.staggeredview.demo.volley.GsonRequest;
 import com.me.archko.staggered.utils.Util;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -95,7 +100,8 @@ public class BaseFlickrPictureActivity extends Activity {
             @Override
             public void onResponse(FlickrResponsePhotos response) {
                 try {
-                    if (response!=null) {
+                    if (response!=null&&response.getPhotos()!=null&&response.getPhotos().getPhotos()!=null
+                        &&response.getPhotos().getPhotos().size()>0) {
                         //mStaggeredView.onRefreshComplete();
                         parseFlickrImageResponse(response);
                         Utils.serializeObject(response, f.getAbsolutePath());
@@ -127,11 +133,37 @@ public class BaseFlickrPictureActivity extends Activity {
                 //mStaggeredView.onRefreshComplete();
                 stopProgress();
                 showToast(error.getMessage());
+                loadLocalJson();
             }
         }
         );
         gsonObjRequest.setTag(TAG_REQUEST);
         mVolleyQueue.add(gsonObjRequest);
+    }
+
+    private void loadLocalJson() {
+        ApolloUtils.execute(false, new AsyncTask<Object, Object, FlickrResponsePhotos>() {
+            @Override
+            protected FlickrResponsePhotos doInBackground(Object... params) {
+                AssetManager am=BaseFlickrPictureActivity.this.getAssets();
+                try {
+                    InputStream is=am.open("flickr.json");
+                    String json=Util.parseInputStream(is);
+                    return new Gson().fromJson(json, FlickrResponsePhotos.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(FlickrResponsePhotos o) {
+                Log.d(TAG_REQUEST, "onPostExecute"+(null==o));
+                if (null!=o) {
+                    parseFlickrImageResponse(o);
+                }
+            }
+        });
     }
 
     public void showProgress() {

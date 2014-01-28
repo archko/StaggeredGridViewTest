@@ -130,9 +130,11 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
     @Override
     public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
         ArrayList<FlickrImage> list=super.parseFlickrImageResponse(response);
-        mAdapter.setDatas(list);
+        if (null!=list) {
+            mAdapter.setDatas(list);
 
-        mAdapter.notifyDataSetChanged();
+            mAdapter.notifyDataSetChanged();
+        }
 
         return null;
     }
