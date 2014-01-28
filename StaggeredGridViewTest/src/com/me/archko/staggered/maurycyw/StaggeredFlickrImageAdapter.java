@@ -1,6 +1,7 @@
 package com.me.archko.staggered.maurycyw;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,10 @@ public class StaggeredFlickrImageAdapter extends BaseAdapter {
 
     public void setDatas(ArrayList<FlickrImage> mDatas) {
         this.mDatas=mDatas;
+    }
+
+    public ArrayList<FlickrImage> getDatas() {
+        return mDatas;
     }
 
     @Override
@@ -65,7 +70,11 @@ public class StaggeredFlickrImageAdapter extends BaseAdapter {
         FlickrImage flickrImage=(FlickrImage) getItem(position);
         //mLoader.DisplayImage(getItem(position), holder.imageView);
         ApolloUtils.getImageFetcher(mContext).startLoadImage(flickrImage.getImageUrl(), holder.imageView);
-        holder.txt.setText(flickrImage.getTitle());
+        String title=flickrImage.getTitle();
+        if (0!=flickrImage.filesize) {
+            title+=" size:"+flickrImage.filesize;
+        }
+        holder.txt.setText(title);
 
         return convertView;
     }

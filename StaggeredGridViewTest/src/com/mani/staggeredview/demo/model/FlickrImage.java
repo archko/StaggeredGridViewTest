@@ -25,6 +25,7 @@ public class FlickrImage implements Serializable{
 	String owner;
 
     public String url;
+    public long filesize;
 	
 	public String getId() {
 		return id;

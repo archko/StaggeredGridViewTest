@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">StaggeredActivity</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Ok</string>
+    <string name="dialog_title">Delete</string>
+    <string name="dialog_msg">Delete the file?</string>
 </resources>

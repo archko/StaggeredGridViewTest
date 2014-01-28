@@ -1,8 +1,11 @@
 package com.me.archko.staggered;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import com.andrew.apollo.utils.ApolloUtils;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
@@ -16,10 +19,11 @@ import java.util.ArrayList;
  */
 public class BaseLocalActivity extends BaseFlickrPictureActivity {
 
-    protected int COUNT=80;
-    final int maxSize=3072000;
-    final int minSize=30000;
+    protected int COUNT=120;
+    final int maxSize=4096000;
+    final int minSize=4000;
     protected ArrayList<File> mDataList=new ArrayList<File>();
+    protected File dir=new File(Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture");
 
     /**
      * This will not work so great since the heights of the imageViews
@@ -37,7 +41,6 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
         ApolloUtils.execute(false, new AsyncTask<Object, Object, Object>() {
             @Override
             protected Object doInBackground(Object... params) {
-                File dir=new File(Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture");
                 if (dir.exists()) {
                     File[] files=dir.listFiles(new FileFilter() {
                         @Override
@@ -84,9 +87,55 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
             FlickrImage flkrImage=new FlickrImage();
             flkrImage.setTitle(tmp.getAbsolutePath());
             flkrImage.url=tmp.getAbsolutePath();
+            flkrImage.filesize=tmp.length();
             list.add(flkrImage);
         }
 
         return list;
+    }
+
+    public void deleteDialog(String title, int msg, final int pos) {
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle(title).setMessage(msg)
+            .setNegativeButton(getResources().getString(R.string.cancel),
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        arg0.cancel();
+                    }
+                }).setPositiveButton(getResources().getString(R.string.confirm),
+            new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    delete(pos);
+                    arg0.cancel();
+                }
+            }).create().show();
+    }
+
+    private void delete(final int pos) {
+        ApolloUtils.execute(false, new AsyncTask<Object, Object, File>() {
+            @Override
+            protected File doInBackground(Object... params) {
+                return doDelete(pos);
+            }
+
+            @Override
+            protected void onPostExecute(File o) {
+                //Log.d("onPostExecute", "delete"+(o));
+                afterDelete(o);
+            }
+        });
+    }
+
+    public File doDelete(int pos) {
+
+        return null;
+    }
+
+    public void afterDelete(File o) {
+
     }
 }
