@@ -39,6 +39,7 @@ import android.util.SparseArray;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.*;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListAdapter;
 import com.bulletnoid.android.widget.StaggeredGridViewDemo.R;
 
@@ -422,6 +423,7 @@ public class StaggeredGridView extends ViewGroup {
                 if (mTouchMode==TOUCH_MODE_FLINGING) {
                     // Catch!
                     mTouchMode=TOUCH_MODE_DRAGGING;
+                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
                     return true;
                 }
                 break;
@@ -443,6 +445,12 @@ public class StaggeredGridView extends ViewGroup {
                     mTouchMode=TOUCH_MODE_DRAGGING;
                     return true;
                 }
+            }
+
+            case MotionEvent.ACTION_UP: {
+                mTouchMode=TOUCH_MODE_REST;
+                mVelocityTracker.clear();
+                reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
             }
         }
 
@@ -472,6 +480,10 @@ public class StaggeredGridView extends ViewGroup {
                 motionPosition=pointToPosition((int) mLastTouchX, (int) mLastTouchY);
                 mActivePointerId=MotionEventCompat.getPointerId(ev, 0);
                 mTouchRemainderY=0;
+
+                if (mTouchMode==TOUCH_MODE_FLINGING) {
+                    //reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                }
 
                 if (mTouchMode!=TOUCH_MODE_FLINGING&&!mDataChanged&&motionPosition>=0&&getAdapter().isEnabled(motionPosition)) {
                     mTouchMode=TOUCH_MODE_DOWN;
@@ -544,7 +556,7 @@ public class StaggeredGridView extends ViewGroup {
                 }
 
                 mTouchMode=TOUCH_MODE_IDLE;
-
+                reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                 break;
 
             case MotionEvent.ACTION_UP: {
@@ -558,6 +570,7 @@ public class StaggeredGridView extends ViewGroup {
                         Integer.MIN_VALUE, Integer.MAX_VALUE);
                     mLastTouchY=0;
                     invalidate();
+                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
                 } else {
                     mTouchMode=TOUCH_MODE_IDLE;
                 }
@@ -567,6 +580,7 @@ public class StaggeredGridView extends ViewGroup {
                     mTouchMode=TOUCH_MODE_TAP;
                 } else {
                     mTouchMode=TOUCH_MODE_REST;
+                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                 }
 
                 switch (prevTouchMode) {
@@ -628,6 +642,7 @@ public class StaggeredGridView extends ViewGroup {
 
                                 } else {
                                     mTouchMode=TOUCH_MODE_REST;
+                                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                                 }
                                 return true;
                             } else if (!mDataChanged&&mAdapter.isEnabled(motionPosition)) {
@@ -636,6 +651,7 @@ public class StaggeredGridView extends ViewGroup {
                         }
 
                         mTouchMode=TOUCH_MODE_REST;
+                        reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                 }
 
                 mBeginClick=false;
@@ -2782,4 +2798,116 @@ public class StaggeredGridView extends ViewGroup {
         mFooterView.setLayoutParams(lp);
     }
 
+    //-------------------------------------------------
+    /**
+     * The last scroll state reported to clients through {@link OnScrollListener}.
+     */
+    private int mLastScrollState = OnScrollListener.SCROLL_STATE_IDLE;
+
+    /**
+     * Optional callback to notify client when scroll position has changed
+     */
+    private OnScrollListener mOnScrollListener;
+
+    /**
+     * Set the listener that will receive notifications every time the list scrolls.
+     *
+     * @param l the scroll listener
+     */
+    public void setOnScrollListener(OnScrollListener l) {
+        mOnScrollListener = l;
+        invokeOnItemScrollListener();
+    }
+
+    /**
+     * Notify our scroll listener (if there is one) of a change in scroll state
+     */
+    void invokeOnItemScrollListener() {
+        /*if (mFastScroller != null) {
+            mFastScroller.onScroll(mFirstPosition, getChildCount(), mItemCount);
+        }*/
+        if (mOnScrollListener != null) {
+            mOnScrollListener.onScroll(null, mFirstPosition, getChildCount(), mItemCount);
+        }
+        onScrollChanged(0, 0, 0, 0); // dummy values, View's implementation does not use these.
+    }
+
+    /**
+     * Smoothly scroll by distance pixels over duration milliseconds.
+     * @param distance Distance to scroll in pixels.
+     * @param duration Duration of the scroll animation in milliseconds.
+     */
+    public void smoothScrollBy(int distance, int duration) {
+        smoothScrollBy(distance, duration, false);
+    }
+
+    void smoothScrollBy(int distance, int duration, boolean linear) {
+        /*if (mFlingRunnable == null) {
+            mFlingRunnable = new FlingRunnable();
+        }*/
+
+        // No sense starting to scroll if we're not going anywhere
+        final int firstPos = mFirstPosition;
+        final int childCount = getChildCount();
+        final int lastPos = firstPos + childCount;
+        final int topLimit = getPaddingTop();
+        final int bottomLimit = getHeight() - getPaddingBottom();
+
+        if (distance == 0 || mItemCount == 0 || childCount == 0 ||
+            (firstPos == 0 && getChildAt(0).getTop() == topLimit && distance < 0) ||
+            (lastPos == mItemCount &&
+                getChildAt(childCount - 1).getBottom() == bottomLimit && distance > 0)) {
+            /*mFlingRunnable.endFling();
+            if (mPositionScroller != null) {
+                mPositionScroller.stop();
+            }*/
+            Log.d(TAG, "smoothScrollBy end.");
+            mScroller.abortAnimation();
+        } else {
+            /*reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+            mFlingRunnable.startScroll(distance, duration, linear);*/
+            //mScroller.fling(0, 0, 0, distance, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            Log.d(TAG, "smoothScrollBy.start:"+distance+" curry:"+mScroller.getCurrY());
+            mScroller.startScroll(0, mScroller.getCurrY(), 0, -distance, duration);
+            invalidate();
+        }
+    }
+
+    public boolean performAccessibilityAction(int action) {
+        switch (action) {
+            case 0x00001000: {
+                if (isEnabled()&&getLastVisiblePosition()<mAdapter.getWrappedAdapter().getCount()-1) {
+                    final int viewportHeight=getHeight()-10;
+                    smoothScrollBy(viewportHeight, 250);
+                    return true;
+                }
+            }
+            return false;
+            case 0x00002000: {
+                if (isEnabled()&&mFirstPosition>0) {
+                    final int viewportHeight=getHeight()-10;
+                    smoothScrollBy(-viewportHeight, 250);
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Fires an "on scroll state changed" event to the registered
+     * {@link android.widget.AbsListView.OnScrollListener}, if any. The state change
+     * is fired only if the specified state is different from the previously known state.
+     *
+     * @param newState The new scroll state.
+     */
+    void reportScrollStateChange(int newState) {
+        if (newState != mLastScrollState) {
+            if (mOnScrollListener != null) {
+                mLastScrollState = newState;
+                mOnScrollListener.onScrollStateChanged(null, newState);
+            }
+        }
+    }
 }
