@@ -1,11 +1,12 @@
-�⼸���ٲ�����ʵ�ֶ����������,����һ��Ҫ֪��ͼƬ�ĸ����.����һЩ�������ʧ��,����λ�ò��Ե�.
-������maurycywStaggeredGridViewΪԭ���޸ĵĽ϶�,��Ϊ��ʵ�����Լ���ViewGroup.
-�������޸Ĺ���(StaggeredGridView-master),����δ�޸Ĺ���(maurycywStaggeredGridView).������һ������,�������·�,�ٻ���,�ұ߶����޷�����.
-�����˸�����Ϊ֮��,�ٲ�����ʵ��,��չʾ,�ǱȽ��ѵ�.PinterestLikeAdapterView��������ǹ������ײ�,�ٻ���,�޷�ȷ��λ��.�����һЩ.
-smanikandan14StaggeredGridView,��LinearLayoutʵ�ֵ�,��һ��������View��,����Layout,��������ͼ�Ļ���,�����ڴ�ռ�÷���,��Ҫʹ���߸���ؿ���.
-bulletnoidStaggeredGridView,StaggeredGridView-master,maurycywStaggeredGridView����maurycywStaggeredGridView�ı���.
-AndroidStaggeredGrid��ͨ��AbsListView������ʵ�ֵ�.��PinterestLikeAdapterView������.
-	��������λ�ü��㲻��ȷ.��Ҫ������.MultiColumnListViewҲ��һ��,�������Ͽ�,ǰ���ǳ�Ϯ���ߵ�,����λ�ü���Ҳ�ǲ���.
+这几种瀑布流的实现都有其局限性,比如一定要知道图片的高与宽.比如一些点击处理失败,或者位置不对等.
+其中以maurycywStaggeredGridView为原型修改的较多,因为它实现了自己的ViewGroup.
+不管是修改过的(StaggeredGridView-master),还是未修改过的(maurycywStaggeredGridView).都存在一个问题,滚动到下方,再回来,右边顶部无法对齐.
+测试了各种行为之后,瀑布流的实现,与展示,是比较难的.PinterestLikeAdapterView的问题就是滚动到底部,再回来,无法确定位置.更糟糕一些.
+smanikandan14StaggeredGridView,是LinearLayout实现的,在一个滚动的View中,添加Layout,不处理视图的回收,所以内存占用方面,需要使用者更多地考虑.
+bulletnoidStaggeredGridView,StaggeredGridView-master,maurycywStaggeredGridView都是maurycywStaggeredGridView的变种.
+AndroidStaggeredGrid是通过AbsListView的子类实现的.与PinterestLikeAdapterView较相似.
+	但是它的位置计算不正确.需要修正的.MultiColumnListView也是一样,从内容上看,前者是抄袭后者的,所以位置计算也是不对.
+	还有一个问题就是在Fragment中使用,已经滚动到某一位置,第一项已经看不见了.然后切换到别的Fragment,再回来,位置计算不对.也可能是因为加入了下拉刷新导致的.
 
-����һ���Ƚ����ص�����,smanikandan14library��ʵ�ַ�ʽ��������ͼ����,������û�д�������,���������ԭ����ķ�ʽ,�ڼ��ز���ʱ,�ͼ�����ͼƬ,�ᵼ���ڴ治��.����������˻��յ�����,��̬���Ӳ���,����һ��������.��Ϊԭ������������Ԫ��ʱ,���Ѿ�֪���˸�,�������¼���,��Ҫ���µõ��ߵĺ�.���������һֱ�������,���ܺû�δ֪.�����Ч�Ĵ������յ�����,Ҳ�Ǹ��鷳����.
+发现一个比较严重的问题,smanikandan14library的实现方式与迷尚美图类似,但是它没有处理回收,所以如果以原程序的方式,在加载布局时,就加载了图片,会导致内存不足.而如果处理了回收的问题,动态添加布局,就有一个问题了.因为原程序在添加子元素时,就已经知道了高,所以重新计算,需要重新得到高的和.如果滚动中一直计算这个,性能好坏未知.如何有效的处理回收的问题,也是个麻烦的事.
 	

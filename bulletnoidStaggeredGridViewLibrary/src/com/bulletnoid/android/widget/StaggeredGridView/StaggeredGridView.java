@@ -2877,7 +2877,7 @@ public class StaggeredGridView extends ViewGroup {
         switch (action) {
             case 0x00001000: {
                 if (isEnabled()&&getLastVisiblePosition()<mAdapter.getWrappedAdapter().getCount()-1) {
-                    final int viewportHeight=getHeight()-10;
+                    final int viewportHeight=getHeight()-10-getPaddingTop()-getPaddingBottom();
                     smoothScrollBy(viewportHeight, 250);
                     return true;
                 }
@@ -2885,7 +2885,7 @@ public class StaggeredGridView extends ViewGroup {
             return false;
             case 0x00002000: {
                 if (isEnabled()&&mFirstPosition>0) {
-                    final int viewportHeight=getHeight()-10;
+                    final int viewportHeight=getHeight()-10-getPaddingTop()-getPaddingBottom();
                     smoothScrollBy(-viewportHeight, 250);
                     return true;
                 }
