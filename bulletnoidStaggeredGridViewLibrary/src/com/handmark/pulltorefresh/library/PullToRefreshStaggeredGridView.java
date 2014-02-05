@@ -4,8 +4,10 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.BaseAdapter;
+import com.bulletnoid.android.widget.StaggeredGridView.HeaderFooterListAdapter;
 import com.bulletnoid.android.widget.StaggeredGridView.StaggeredGridView;
 import com.bulletnoid.android.widget.StaggeredGridViewDemo.R;
 
@@ -57,11 +59,48 @@ public class PullToRefreshStaggeredGridView extends PullToRefreshBase<StaggeredG
 
     @Override
     protected boolean isReadyForPullEnd() {
-        return false;
+        //return false;
+        return isLastItemVisible();
     }
 
     public void setAdapter(BaseAdapter adapter) {
         mRefreshableView.setAdapter(adapter);
+    }
+
+    private boolean isLastItemVisible() {
+        final HeaderFooterListAdapter adapter =(HeaderFooterListAdapter) mRefreshableView.getAdapter();
+
+        if (null == adapter || adapter.isEmpty()) {
+            if (DEBUG) {
+                Log.d(LOG_TAG, "isLastItemVisible. Empty View.");
+            }
+            return true;
+        } else {
+            final int lastItemPosition = mRefreshableView.getAdapter().getCount() - 1;
+            final int lastVisiblePosition = mRefreshableView.getLastVisiblePosition();
+
+            if (DEBUG) {
+                Log.v(LOG_TAG, "isLastItemVisible. Last Item Position: " + lastItemPosition + " Last Visible Pos: "
+                    + lastVisiblePosition);
+            }
+
+            /**
+             * This check should really just be: lastVisiblePosition ==
+             * lastItemPosition, but PtRListView internally uses a FooterView
+             * which messes the positions up. For me we'll just subtract one to
+             * account for it and rely on the inner condition which checks
+             * getBottom().
+             */
+            if (lastVisiblePosition >= lastItemPosition - 1) {
+                final int childIndex = lastVisiblePosition - mRefreshableView.getFirstVisiblePosition();
+                final View lastVisibleChild = mRefreshableView.getChildAt(childIndex);
+                if (lastVisibleChild != null) {
+                    return lastVisibleChild.getBottom() <= mRefreshableView.getBottom();
+                }
+            }
+        }
+
+        return false;
     }
 
     @TargetApi(9)

@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 import com.bulletnoid.android.widget.StaggeredGridView.StaggeredGridView;
 import com.me.archko.staggered.R;
 
@@ -40,6 +42,22 @@ public class STGVActivity extends Activity {
             @Override
             public void onLoadmore() {
                 new LoadMoreTask().execute();
+            }
+        });
+
+        stgv.setOnItemClickListener(new StaggeredGridView.OnItemClickListener() {
+            @Override
+            public void onItemClick(StaggeredGridView parent, View view, int position, long id) {
+                Log.d("click", "item:"+position);
+                Toast.makeText(STGVActivity.this, "click:"+position, Toast.LENGTH_SHORT).show();
+            }
+        });
+        stgv.setOnItemLongClickListener(new StaggeredGridView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(StaggeredGridView parent, View view, int position, long id) {
+                Log.d("long", "item:"+position);
+                Toast.makeText(STGVActivity.this, "long:"+position, Toast.LENGTH_SHORT).show();
+                return false;
             }
         });
     }

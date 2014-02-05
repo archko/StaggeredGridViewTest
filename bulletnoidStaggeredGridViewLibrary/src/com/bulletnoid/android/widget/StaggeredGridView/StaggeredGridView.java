@@ -516,6 +516,12 @@ public class StaggeredGridView extends ViewGroup {
                     }
                 }
 
+                if (mTouchMode==TOUCH_MODE_DOWN||mTouchMode==TOUCH_MODE_TAP||mTouchMode==TOUCH_MODE_DONE_WAITING) {
+                    final Handler handler=getHandler();
+                    if (handler!=null) {
+                        handler.removeCallbacks(mPendingCheckForLongPress);
+                    }
+                }
                 updateSelectorState();
                 break;
 
@@ -576,7 +582,7 @@ public class StaggeredGridView extends ViewGroup {
                             }
 
                             if (mPerformClick==null) {
-                                invalidate();
+                                //invalidate();
                                 mPerformClick=new PerformClick();
                             }
 
@@ -679,7 +685,9 @@ public class StaggeredGridView extends ViewGroup {
                     lazyload=true;
 
                     if (!loadlock) {
-                        mLoadListener.onLoadmore();
+                        if (null!=mLoadListener) {
+                            mLoadListener.onLoadmore();
+                        }
                         loadlock=true;
                     }
                 }
@@ -724,6 +732,14 @@ public class StaggeredGridView extends ViewGroup {
         }
 
         return deltaY==0||movedBy!=0;
+    }
+
+    public int getFirstVisiblePosition() {
+        return mFirstPosition;
+    }
+
+    public int getLastVisiblePosition() {
+        return mFirstPosition + getChildCount() - 1;
     }
 
     private final boolean contentFits() {
@@ -1732,6 +1748,8 @@ public class StaggeredGridView extends ViewGroup {
         sglp.position=position;
         sglp.viewType=positionViewType;
 
+        //Set the updated LayoutParam before returning the view.
+        view.setLayoutParams(sglp);
         return view;
     }
 
@@ -2368,7 +2386,7 @@ public class StaggeredGridView extends ViewGroup {
                 if (child!=null&&!child.hasFocusable()) {
 
                     if (!mDataChanged) {
-                        child.setSelected(true);
+                        //child.setSelected(true);
                         child.setPressed(true);
 
                         setPressed(true);
@@ -2378,10 +2396,11 @@ public class StaggeredGridView extends ViewGroup {
 
                         final int longPressTimeout=ViewConfiguration.getLongPressTimeout();
                         final boolean longClickable=isLongClickable();
+                        Log.d(TAG, "longClickable:"+longClickable+" longPressTimeout:"+longPressTimeout);
 
                         if (mSelector!=null) {
                             Drawable d=mSelector.getCurrent();
-                            if (d instanceof TransitionDrawable) {
+                            if (d != null && d instanceof TransitionDrawable) {
                                 if (longClickable) {
                                     ((TransitionDrawable) d).startTransition(longPressTimeout);
                                 } else {

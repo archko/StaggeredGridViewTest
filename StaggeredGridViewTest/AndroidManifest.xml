@@ -87,9 +87,10 @@
 
         <!-- test activity -->
         <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
+            android:hardwareAccelerated="false"
             android:configChanges="orientation|screenSize|keyboardHidden|locale"/>
         <activity
-            android:name=".maurycyw.TestMasterActivity"
+            android:name=".maurycyw.TestMasterActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_maurycyw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -107,7 +108,7 @@
         </activity>
 
         <activity
-            android:name=".etsy.TestEtsyActivity"
+            android:name=".etsy.TestEtsyActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_etsy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -116,7 +117,7 @@
         </activity>
 
         <activity
-            android:name=".huewupla.TestPlaActivity"
+            android:name=".huewupla.TestPlaActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_Pla">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -134,8 +135,17 @@
         </activity>
 
         <activity
-            android:name=".mani.TestManiActivity"
+            android:name=".mani.TestManiActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_smani">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".bulletnoid.TestSTGVWithPTRActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_stg_ptr">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
