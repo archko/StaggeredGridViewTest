@@ -25,6 +25,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -33,14 +34,23 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.EdgeEffectCompat;
+import android.support.v4.widget.ScrollerCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.*;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
+import android.view.SoundEffectConstants;
+import android.view.VelocityTracker;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListAdapter;
+import android.widget.OverScroller;
+import android.widget.Scroller;
 import com.bulletnoid.android.widget.StaggeredGridViewDemo.R;
 
 import java.util.ArrayList;
@@ -58,9 +68,9 @@ import java.util.Arrays;
  * The attribute <code>android:layout_span</code> may be used when inflating
  * item views from xml.</p>
  */
-public class StaggeredGridView extends ViewGroup {
+public class StaggeredGridView3 extends ViewGroup {
 
-    private static final String TAG="StaggeredGridView";
+    private static final String TAG="StaggeredGridView3";
 
     /*
      * There are a few things you should know if you're going to make modifications
@@ -120,12 +130,19 @@ public class StaggeredGridView extends ViewGroup {
     private int mFirstPosition;
 
     private int mTouchSlop;
+    private int mMinimumVelocity;
     private int mMaximumVelocity;
+    private float mVelocityScale = 1.0f;
     private int mFlingVelocity;
     private float mLastTouchY;
     private float mLastTouchX;
     private float mTouchRemainderY;
-    private int mActivePointerId;
+
+    /**
+     * How far the finger moved before we started scrolling
+     */
+    int mMotionCorrection;
+    //private int mActivePointerId;
     private int mMotionPosition;
     private int mColWidth;
     private int mNumCols;
@@ -140,11 +157,49 @@ public class StaggeredGridView extends ViewGroup {
     private static final int TOUCH_MODE_DONE_WAITING=5;
     private static final int TOUCH_MODE_REST=6;
 
+    /**
+     * Indicates the view is being flung outside of normal content bounds
+     * and will spring back.
+     */
+    static final int TOUCH_MODE_OVERFLING = 7;
+
+    /**
+     * Indicates the touch gesture is an overscroll - a scroll beyond the beginning or end.
+     */
+    static final int TOUCH_MODE_OVERSCROLL = 9;
+
     private static final int INVALID_POSITION=-1;
 
     private int mTouchMode;
-    private final VelocityTracker mVelocityTracker=VelocityTracker.obtain();
-    private final ScrollerCompat mScroller;
+    private VelocityTracker mVelocityTracker;
+    /**
+     * Handles one frame of a fling
+     */
+    private FlingRunnable mFlingRunnable;
+    //private final ScrollerCompat mScroller;
+
+    /**
+     * ID of the active pointer. This is used to retain consistency during
+     * drags/flings if multiple pointers are used.
+     */
+    private int mActivePointerId = INVALID_POINTER;
+
+    /**
+     * Sentinel value for no current active pointer.
+     * Used by {@link #mActivePointerId}.
+     */
+    private static final int INVALID_POINTER = -1;
+
+
+    /**
+     * Maximum distance to overscroll by during edge effects
+     */
+    int mOverscrollDistance;
+
+    /**
+     * Maximum distance to overfling during edge effects
+     */
+    int mOverflingDistance;
 
     private final EdgeEffectCompat mTopEdge;
     private final EdgeEffectCompat mBottomEdge;
@@ -227,8 +282,6 @@ public class StaggeredGridView extends ViewGroup {
      */
     private Rect mTouchFrame;
 
-    OnLoadmoreListener mLoadListener;
-
     public static boolean loadlock=false;
     public static boolean lazyload=false;
     public static final int MAX_CHILD_COUNT=12;
@@ -301,23 +354,18 @@ public class StaggeredGridView extends ViewGroup {
         }
     }
 
-    public interface OnLoadmoreListener {
-
-        public void onLoadmore();
-    }
-
     private final SparseArrayCompat<LayoutRecord> mLayoutRecords=
         new SparseArrayCompat<LayoutRecord>();
 
-    public StaggeredGridView(Context context) {
+    public StaggeredGridView3(Context context) {
         this(context, null);
     }
 
-    public StaggeredGridView(Context context, AttributeSet attrs) {
+    public StaggeredGridView3(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public StaggeredGridView(Context context, AttributeSet attrs, int defStyle) {
+    public StaggeredGridView3(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         if (attrs!=null) {
@@ -333,7 +381,7 @@ public class StaggeredGridView extends ViewGroup {
         mTouchSlop=vc.getScaledTouchSlop();
         mMaximumVelocity=vc.getScaledMaximumFlingVelocity();
         mFlingVelocity=vc.getScaledMinimumFlingVelocity();
-        mScroller=ScrollerCompat.from(context);
+        //mScroller=ScrollerCompat.from(context);
 
         mTopEdge=new EdgeEffectCompat(context);
         mBottomEdge=new EdgeEffectCompat(context);
@@ -344,10 +392,11 @@ public class StaggeredGridView extends ViewGroup {
         if (mSelector==null) {
             useDefaultSelector();
         }
-    }
 
-    public void setOnLoadmoreListener(OnLoadmoreListener listener) {
-        this.mLoadListener=listener;
+        mMinimumVelocity = vc.getScaledMinimumFlingVelocity();
+        mMaximumVelocity = vc.getScaledMaximumFlingVelocity();
+        mOverscrollDistance = vc.getScaledOverscrollDistance(); //TODO
+        mOverflingDistance = vc.getScaledOverflingDistance();
     }
 
     /**
@@ -411,50 +460,79 @@ public class StaggeredGridView extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        mVelocityTracker.addMovement(ev);
-        final int action=ev.getAction()&MotionEventCompat.ACTION_MASK;
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                mVelocityTracker.clear();
-                mScroller.abortAnimation();
-                mLastTouchY=ev.getY();
-                mActivePointerId=MotionEventCompat.getPointerId(ev, 0);
-                mTouchRemainderY=0;
-                if (mTouchMode==TOUCH_MODE_FLINGING) {
-                    // Catch!
-                    mTouchMode=TOUCH_MODE_DRAGGING;
-                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
+        int action=ev.getAction();
+        View v;
+
+        switch (action&MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN: {
+                int touchMode=mTouchMode;
+
+                final int x=(int) ev.getX();
+                final int y=(int) ev.getY();
+                mActivePointerId=ev.getPointerId(0);
+
+                int motionPosition=findMotionRow(y);
+                if (touchMode!=TOUCH_MODE_FLINGING&&motionPosition>=0) {
+                    // User clicked on an actual view (and was not stopping a fling).
+                    // Remember where the motion event started
+                    v=getChildAt(motionPosition-mFirstPosition);
+                    //mMotionViewOriginalTop=v.getTop();
+                    mLastTouchX=x;
+                    mLastTouchY=y;
+                    mMotionPosition=motionPosition;
+                    mTouchMode=TOUCH_MODE_DOWN;
+                    clearScrollingCache();
+                }
+                mTouchRemainderY=Integer.MIN_VALUE;
+                if (touchMode==TOUCH_MODE_FLINGING) {
                     return true;
                 }
                 break;
+            }
 
             case MotionEvent.ACTION_MOVE: {
-                final int index=MotionEventCompat.findPointerIndex(ev, mActivePointerId);
-                if (index<0) {
-                    Log.e(TAG, "onInterceptTouchEvent could not find pointer with id "+
-                        mActivePointerId+" - did StaggeredGridView receive an inconsistent "+
-                        "event stream?");
-                    return false;
+                switch (mTouchMode) {
+                    case TOUCH_MODE_DOWN:
+                        final int pointerIndex=ev.findPointerIndex(mActivePointerId);
+                        final int y=(int) ev.getY(pointerIndex);
+                        if (startScrollIfNeeded((int) (y-mLastTouchX))) {
+                            return true;
+                        }
+                        break;
                 }
-                final float y=MotionEventCompat.getY(ev, index);
-                final float dy=y-mLastTouchY+mTouchRemainderY;
-                final int deltaY=(int) dy;
-                mTouchRemainderY=dy-deltaY;
-
-                if (Math.abs(dy)>mTouchSlop) {
-                    mTouchMode=TOUCH_MODE_DRAGGING;
-                    return true;
-                }
+                break;
             }
 
             case MotionEvent.ACTION_UP: {
                 mTouchMode=TOUCH_MODE_REST;
-                mVelocityTracker.clear();
+                mActivePointerId=INVALID_POINTER;
                 reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                break;
+            }
+
+            case MotionEvent.ACTION_POINTER_UP: {
+                onSecondaryPointerUp(ev);
+                break;
             }
         }
 
         return false;
+    }
+
+    private void onSecondaryPointerUp(MotionEvent ev) {
+        final int pointerIndex = (ev.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >>
+            MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+        final int pointerId = ev.getPointerId(pointerIndex);
+        if (pointerId == mActivePointerId) {
+            // This was our active pointer going up. Choose a new
+            // active pointer and adjust accordingly.
+            // TODO: Make this decision more intelligent.
+            final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+            mLastTouchX = (int) ev.getX(newPointerIndex);
+            mLastTouchY = (int) ev.getY(newPointerIndex);
+            mMotionCorrection = 0;
+            mActivePointerId = ev.getPointerId(newPointerIndex);
+        }
     }
 
     void hideSelector() {
@@ -463,157 +541,379 @@ public class StaggeredGridView extends ViewGroup {
         }
     }
 
+    private boolean startScrollIfNeeded(int deltaY) {
+        // Check if we have moved far enough that it looks more like a
+        // scroll than a tap
+        final int distance=Math.abs(deltaY);
+        int touchSlop=mTouchSlop;
+        if (distance>touchSlop) {
+            //createScrollingCache();
+            mTouchMode=TOUCH_MODE_DRAGGING;
+            mMotionCorrection=deltaY;
+            setPressed(false);
+            View motionView=getChildAt(mMotionPosition-mFirstPosition);
+            if (motionView!=null) {
+                motionView.setPressed(false);
+            }
+            reportScrollStateChange(OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
+            // Time to start stealing events! Once we've stolen them, don't let anyone
+            // steal from us
+            requestDisallowInterceptTouchEvent(true);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void scrollIfNeeded(int y) {
+        final int rawDeltaY =(int) (y - mLastTouchY);
+        final int deltaY = rawDeltaY - mMotionCorrection;
+        int incrementalDeltaY =mTouchRemainderY != Integer.MIN_VALUE ? (int) (y-mTouchRemainderY) : deltaY;
+
+        if (mTouchMode == TOUCH_MODE_DRAGGING) {
+            /*if (PROFILE_SCROLLING) {
+                if (!mScrollProfilingStarted) {
+                    Debug.startMethodTracing("AbsListViewScroll");
+                    mScrollProfilingStarted = true;
+                }
+            }
+
+            if (mScrollStrictSpan == null) {
+                // If it's non-null, we're already in a scroll.
+                mScrollStrictSpan = StrictMode.enterCriticalSpan("AbsListView-scroll");
+            }*/
+
+            if (y != mTouchRemainderY) {
+                // We may be here after stopping a fling and continuing to scroll.
+                // If so, we haven't disallowed intercepting touch events yet.
+                // Make sure that we do so in case we're in a parent that can intercept.
+                /*if ((mGroupFlags & FLAG_DISALLOW_INTERCEPT) == 0 &&
+                    Math.abs(rawDeltaY) > mTouchSlop) {
+                    final ViewParent parent = getParent();
+                    if (parent != null) {
+                        parent.requestDisallowInterceptTouchEvent(true);
+                    }
+                }*/
+
+                final int motionIndex;
+                if (mMotionPosition >= 0) {
+                    motionIndex = mMotionPosition - mFirstPosition;
+                } else {
+                    // If we don't have a motion position that we can reliably track,
+                    // pick something in the middle to make a best guess at things below.
+                    motionIndex = getChildCount() / 2;
+                }
+
+                int motionViewPrevTop = 0;
+                View motionView = this.getChildAt(motionIndex);
+                if (motionView != null) {
+                    motionViewPrevTop = motionView.getTop();
+                }
+
+                // No need to do all this work if we're not going to move anyway
+                boolean atEdge = false;
+                if (incrementalDeltaY != 0) {
+                    atEdge = trackMotionScroll(deltaY, true);
+                }
+
+                // Check to see if we have bumped into the scroll limit
+                motionView = this.getChildAt(motionIndex);
+                if (motionView != null) {
+                    // Check if the top of the motion view is where it is
+                    // supposed to be
+                    final int motionViewRealTop = motionView.getTop();
+                    if (atEdge) {
+                        // Apply overscroll
+
+                        int overscroll = -incrementalDeltaY -
+                            (motionViewRealTop - motionViewPrevTop);
+                        overScrollBy(0, overscroll, 0, getScrollY(), 0, 0,
+                            0, mOverscrollDistance, true);
+                        if (Math.abs(mOverscrollDistance) == Math.abs(getScrollY())) {
+                            // Don't allow overfling if we're at the edge.
+                            if (mVelocityTracker != null) {
+                                mVelocityTracker.clear();
+                            }
+                        }
+
+                        final int overscrollMode = ViewCompat.getOverScrollMode(this);
+                        if (overscrollMode == OVER_SCROLL_ALWAYS ||
+                            (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
+                                !contentFits())) {
+                            //mDirection = 0; // Reset when entering overscroll.
+                            mTouchMode = TOUCH_MODE_OVERSCROLL;
+                            /*if (rawDeltaY > 0) {
+                                mEdgeGlowTop.onPull((float) overscroll / getHeight());
+                                if (!mEdgeGlowBottom.isFinished()) {
+                                    mEdgeGlowBottom.onRelease();
+                                }
+                                invalidate(mEdgeGlowTop.getBounds(false));
+                            } else if (rawDeltaY < 0) {
+                                mEdgeGlowBottom.onPull((float) overscroll / getHeight());
+                                if (!mEdgeGlowTop.isFinished()) {
+                                    mEdgeGlowTop.onRelease();
+                                }
+                                invalidate(mEdgeGlowBottom.getBounds(true));
+                            }*/
+                        }
+                    }
+                    mLastTouchY = y;
+                }
+                mTouchRemainderY = y;
+            }
+        } else if (mTouchMode == TOUCH_MODE_OVERSCROLL) {
+            if (y != mTouchRemainderY) {
+                final int oldScroll = getScrollY();
+                final int newScroll = oldScroll - incrementalDeltaY;
+                int newDirection = y > mTouchRemainderY ? 1 : -1;
+
+                /*if (mDirection == 0) {
+                    mDirection = newDirection;
+                }*/
+
+                int overScrollDistance = -incrementalDeltaY;
+                if ((newScroll < 0 && oldScroll >= 0) || (newScroll > 0 && oldScroll <= 0)) {
+                    overScrollDistance = -oldScroll;
+                    incrementalDeltaY += overScrollDistance;
+                } else {
+                    incrementalDeltaY = 0;
+                }
+
+                if (overScrollDistance != 0) {
+                    overScrollBy(0, overScrollDistance, 0, getScrollY(), 0, 0,
+                        0, mOverscrollDistance, true);
+                    final int overscrollMode = ViewCompat.getOverScrollMode(this);
+                    if (overscrollMode == OVER_SCROLL_ALWAYS ||
+                        (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
+                            !contentFits())) {
+                        /*if (rawDeltaY > 0) {
+                            mEdgeGlowTop.onPull((float) overScrollDistance / getHeight());
+                            if (!mEdgeGlowBottom.isFinished()) {
+                                mEdgeGlowBottom.onRelease();
+                            }
+                            invalidate(mEdgeGlowTop.getBounds(false));
+                        } else if (rawDeltaY < 0) {
+                            mEdgeGlowBottom.onPull((float) overScrollDistance / getHeight());
+                            if (!mEdgeGlowTop.isFinished()) {
+                                mEdgeGlowTop.onRelease();
+                            }
+                            invalidate(mEdgeGlowBottom.getBounds(true));
+                        }*/
+                    }
+                }
+
+                if (incrementalDeltaY != 0) {
+                    // Coming back to 'real' list scrolling
+                    /*if (mScrollY != 0) {
+                        mScrollY = 0;
+                        invalidateParentIfNeeded();
+                    }*/
+
+                    trackMotionScroll(incrementalDeltaY, true);
+
+                    mTouchMode = TOUCH_MODE_DRAGGING;
+
+                    // We did not scroll the full amount. Treat this essentially like the
+                    // start of a new touch scroll
+                    final int motionPosition = findClosestMotionRow(y);
+
+                    mMotionCorrection = 0;
+                    View motionView = getChildAt(motionPosition - mFirstPosition);
+                    //mMotionViewOriginalTop = motionView != null ? motionView.getTop() : 0;
+                    mLastTouchY = y;
+                    mMotionPosition = motionPosition;
+                }
+                mTouchRemainderY = y;
+                //mDirection = newDirection;
+            }
+        }
+    }
+
+    int findMotionRow(int y) {
+        int childCount = getChildCount();
+        if (childCount > 0) {
+            /*if (!mStackFromBottom) {
+                for (int i = 0; i < childCount; i++) {
+                    View v = getChildAt(i);
+                    if (y <= v.getBottom()) {
+                        return mFirstPosition + i;
+                    }
+                }
+            } else*/ {
+                for (int i = childCount - 1; i >= 0; i--) {
+                    View v = getChildAt(i);
+                    if (y >= v.getTop()) {
+                        return mFirstPosition + i;
+                    }
+                }
+            }
+        }
+        return INVALID_POSITION;
+    }
+
+    /**
+     * Find the row closest to y. This row will be used as the motion row when scrolling.
+     *
+     * @param y Where the user touched
+     * @return The position of the first (or only) item in the row closest to y
+     */
+    int findClosestMotionRow(int y) {
+        final int childCount = getChildCount();
+        if (childCount == 0) {
+            return INVALID_POSITION;
+        }
+
+        final int motionRow = findMotionRow(y);
+        return motionRow != INVALID_POSITION ? motionRow : mFirstPosition + childCount - 1;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (!isEnabled()) {
+            // A disabled view that is clickable still consumes the touch
+            // events, it just doesn't respond to them.
+            return isClickable()||isLongClickable();
+        }
+
+        final int action=ev.getAction();
+
+        View v;
+        int deltaY;
+
+        if (mVelocityTracker==null) {
+            mVelocityTracker=VelocityTracker.obtain();
+        }
         mVelocityTracker.addMovement(ev);
-        final int action=ev.getAction()&MotionEventCompat.ACTION_MASK;
 
-        int motionPosition=pointToPosition((int) ev.getX(), (int) ev.getY());
+        switch (action&MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN: {
+                mActivePointerId=ev.getPointerId(0);
+                final int x=(int) ev.getX();
+                final int y=(int) ev.getY();
+                int motionPosition=pointToPosition(x, y);
+                if (!mDataChanged) {
+                    if ((mTouchMode!=TOUCH_MODE_FLINGING)&&(motionPosition>=0)
+                        &&(getAdapter().isEnabled(motionPosition))) {
+                        // User clicked on an actual view (and was not stopping a fling). It might be a
+                        // click or a scroll. Assume it is a click until proven otherwise
+                        mTouchMode=TOUCH_MODE_DOWN;
+                        // FIXME Debounce
+                        if (mPendingCheckForTap==null) {
+                            mPendingCheckForTap=new CheckForTap();
+                        }
+                        postDelayed(mPendingCheckForTap, ViewConfiguration.getTapTimeout());
+                    } else {
+                        if (ev.getEdgeFlags()!=0&&motionPosition<0) {
+                            // If we couldn't find a view to click on, but the down event was touching
+                            // the edge, we will bail out and try again. This allows the edge correcting
+                            // code in ViewRoot to try to find a nearby view to select
+                            return false;
+                        }
 
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-
-                mVelocityTracker.clear();
-                mScroller.abortAnimation();
-                mLastTouchY=ev.getY();
-                mLastTouchX=ev.getX();
-                motionPosition=pointToPosition((int) mLastTouchX, (int) mLastTouchY);
-                mActivePointerId=MotionEventCompat.getPointerId(ev, 0);
-                mTouchRemainderY=0;
-
-                if (mTouchMode==TOUCH_MODE_FLINGING) {
-                    //reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
-                }
-
-                if (mTouchMode!=TOUCH_MODE_FLINGING&&!mDataChanged&&motionPosition>=0&&getAdapter().isEnabled(motionPosition)) {
-                    mTouchMode=TOUCH_MODE_DOWN;
-
-                    mBeginClick=true;
-
-                    if (mPendingCheckForTap==null) {
-                        mPendingCheckForTap=new CheckForTap();
+                        if (mTouchMode==TOUCH_MODE_FLINGING) {
+                            // Stopped a fling. It is a scroll.
+                            //createScrollingCache();
+                            mTouchMode=TOUCH_MODE_DRAGGING;
+                            mMotionCorrection=0;
+                            motionPosition=findMotionRow(y);
+                            reportScrollStateChange(OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
+                        }
                     }
-
-                    postDelayed(mPendingCheckForTap, ViewConfiguration.getTapTimeout());
                 }
 
+                if (motionPosition>=0) {
+                    // Remember where the motion event started
+                    v=getChildAt(motionPosition-mFirstPosition);
+                    //mMotionViewOriginalTop=v.getTop();
+                }
+                mLastTouchX=x;
+                mLastTouchY=y;
                 mMotionPosition=motionPosition;
-                invalidate();
+                mTouchRemainderY=Integer.MIN_VALUE;
                 break;
+            }
 
-            case MotionEvent.ACTION_MOVE:
-
-                final int index=MotionEventCompat.findPointerIndex(ev, mActivePointerId);
-                if (index<0) {
-                    Log.e(TAG, "onInterceptTouchEvent could not find pointer with id "+
-                        mActivePointerId+" - did StaggeredGridView receive an inconsistent "+
-                        "event stream?");
-                    return false;
-                }
-                final float y=MotionEventCompat.getY(ev, index);
-                final float dy=y-mLastTouchY+mTouchRemainderY;
-                final int deltaY=(int) dy;
-                mTouchRemainderY=dy-deltaY;
-
-                if (Math.abs(dy)>mTouchSlop) {
-                    mTouchMode=TOUCH_MODE_DRAGGING;
-                }
-
-                if (mTouchMode==TOUCH_MODE_DRAGGING) {
-                    mLastTouchY=y;
-
-                    if (!trackMotionScroll(deltaY, true)) {
-                        // Break fling velocity if we impacted an edge.
-                        mVelocityTracker.clear();
-                    }
-                }
-
-                if (mTouchMode==TOUCH_MODE_DOWN||mTouchMode==TOUCH_MODE_TAP||mTouchMode==TOUCH_MODE_DONE_WAITING) {
-                    final Handler handler=getHandler();
-                    if (handler!=null) {
-                        handler.removeCallbacks(mPendingCheckForLongPress);
-                    }
-                }
-                updateSelectorState();
-                break;
-
-            case MotionEvent.ACTION_CANCEL:
-                mTouchMode=TOUCH_MODE_IDLE;
-                updateSelectorState();
-                setPressed(false);
-                View motionView=this.getChildAt(mMotionPosition-mFirstPosition);
-                if (motionView!=null) {
-                    motionView.setPressed(false);
-                }
-                final Handler handler=getHandler();
-                if (handler!=null) {
-                    handler.removeCallbacks(mPendingCheckForLongPress);
-                }
-
-                if (mTopEdge!=null) {
-                    mTopEdge.onRelease();
-                    mBottomEdge.onRelease();
-                }
-
-                mTouchMode=TOUCH_MODE_IDLE;
-                reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
-                break;
-
-            case MotionEvent.ACTION_UP: {
-                mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-                final float velocity=VelocityTrackerCompat.getYVelocity(mVelocityTracker, mActivePointerId);
-                final int prevTouchMode=mTouchMode;
-
-                if (Math.abs(velocity)>mFlingVelocity) { // TODO
-                    mTouchMode=TOUCH_MODE_FLINGING;
-                    mScroller.fling(0, 0, 0, (int) velocity, 0, 0,
-                        Integer.MIN_VALUE, Integer.MAX_VALUE);
-                    mLastTouchY=0;
-                    invalidate();
-                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
-                } else {
-                    mTouchMode=TOUCH_MODE_IDLE;
-                }
-
-                if (!mDataChanged&&mAdapter.isEnabled(motionPosition)) {
-                    // TODO : handle
-                    mTouchMode=TOUCH_MODE_TAP;
-                } else {
-                    mTouchMode=TOUCH_MODE_REST;
-                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
-                }
-
-                switch (prevTouchMode) {
+            case MotionEvent.ACTION_MOVE: {
+                final int pointerIndex=ev.findPointerIndex(mActivePointerId);
+                final int y=(int) ev.getY(pointerIndex);
+                deltaY=(int) (y-mLastTouchY);
+                switch (mTouchMode) {
                     case TOUCH_MODE_DOWN:
                     case TOUCH_MODE_TAP:
                     case TOUCH_MODE_DONE_WAITING:
+                        // Check if we have moved far enough that it looks more like a
+                        // scroll than a tap
+                        startScrollIfNeeded(deltaY);
+                        break;
+                    case TOUCH_MODE_DRAGGING:
+                        /*if (PROFILE_SCROLLING) {
+                            if (!mScrollProfilingStarted) {
+                                Debug.startMethodTracing("AbsListViewScroll");
+                                mScrollProfilingStarted=true;
+                            }
+                        }*/
+
+                        if (y!=mTouchRemainderY) {
+                            deltaY-=mMotionCorrection;
+                            int incrementalDeltaY=mTouchRemainderY!=Integer.MIN_VALUE ? (int) (y-mTouchRemainderY) : deltaY;
+
+                            // No need to do all this work if we're not going to move anyway
+                            boolean atEdge=false;
+                            if (incrementalDeltaY!=0) {
+                                atEdge=trackMotionScroll(deltaY, true);
+                            }
+
+                            // Check to see if we have bumped into the scroll limit
+                            if (atEdge&&getChildCount()>0) {
+                                // Treat this like we're starting a new scroll from the current
+                                // position. This will let the user start scrolling back into
+                                // content immediately rather than needing to scroll back to the
+                                // point where they hit the limit first.
+                                int motionPosition=findMotionRow(y);
+                                if (motionPosition>=0) {
+                                    final View motionView=getChildAt(motionPosition-mFirstPosition);
+                                    //mMotionViewOriginalTop=motionView.getTop();
+                                }
+                                mLastTouchY=y;
+                                mMotionPosition=motionPosition;
+                                invalidate();
+                            }
+                            mTouchRemainderY=y;
+                        }
+                        break;
+                }
+
+                break;
+            }
+
+            case MotionEvent.ACTION_UP: {
+                switch (mTouchMode) {
+                    case TOUCH_MODE_DOWN:
+                    case TOUCH_MODE_TAP:
+                    case TOUCH_MODE_DONE_WAITING:
+                        final int motionPosition=mMotionPosition;
                         final View child=getChildAt(motionPosition-mFirstPosition);
-                        final float x=ev.getX();
-                        final boolean inList=x>getPaddingLeft()&&x<getWidth()-getPaddingRight();
-                        if (child!=null&&!child.hasFocusable()&&inList) {
+                        System.out.println("child:"+child+" motionPosition:"+motionPosition);
+                        if (child!=null&&!child.hasFocusable()) {
                             if (mTouchMode!=TOUCH_MODE_DOWN) {
                                 child.setPressed(false);
                             }
 
                             if (mPerformClick==null) {
-                                //invalidate();
                                 mPerformClick=new PerformClick();
                             }
 
                             final PerformClick performClick=mPerformClick;
+                            //performClick.mChild=child;
                             performClick.mClickMotionPosition=motionPosition;
                             performClick.rememberWindowAttachCount();
 
-                            if (mTouchMode==TOUCH_MODE_DOWN||mTouchMode==TOUCH_MODE_TAP) {
-                                final Handler handlerTouch=getHandler();
-                                if (handlerTouch!=null) {
-                                    handlerTouch.removeCallbacks(mTouchMode==TOUCH_MODE_DOWN ?
-                                        mPendingCheckForTap : mPendingCheckForLongPress);
-                                }
+                            //mResurrectToPosition=motionPosition;
 
+                            if (mTouchMode==TOUCH_MODE_DOWN||mTouchMode==TOUCH_MODE_TAP) {
+                                //mLayoutMode=LAYOUT_NORMAL;
                                 if (!mDataChanged&&mAdapter.isEnabled(motionPosition)) {
                                     mTouchMode=TOUCH_MODE_TAP;
-
                                     layoutChildren(mDataChanged);
                                     child.setPressed(true);
                                     positionSelector(mMotionPosition, child);
@@ -624,44 +924,424 @@ public class StaggeredGridView extends ViewGroup {
                                             ((TransitionDrawable) d).resetTransition();
                                         }
                                     }
-                                    if (mTouchModeReset!=null) {
-                                        removeCallbacks(mTouchModeReset);
-                                    }
-                                    mTouchModeReset=new Runnable() {
-                                        @Override
+                                    postDelayed(new Runnable() {
                                         public void run() {
-                                            mTouchMode=TOUCH_MODE_REST;
                                             child.setPressed(false);
                                             setPressed(false);
                                             if (!mDataChanged) {
-                                                performClick.run();
+                                                post(performClick);
                                             }
+                                            mTouchMode=TOUCH_MODE_REST;
                                         }
-                                    };
-                                    postDelayed(mTouchModeReset, ViewConfiguration.getPressedStateDuration());
+                                    }, ViewConfiguration.getPressedStateDuration());
+                                } else {
+                                    mTouchMode=TOUCH_MODE_REST;
+                                }
+                                return true;
+                            } else if (!mDataChanged&&mAdapter.isEnabled(motionPosition)) {
+                                post(performClick);
+                            }
+                        }
+                        mTouchMode=TOUCH_MODE_REST;
+                        break;
+                    case TOUCH_MODE_DRAGGING:
+                        final int childCount=getChildCount();
+                        if (childCount>0) {
+                            /*int top=getFillChildTop();
+                            int bottom=getFillChildBottom();
+                            if (mFirstPosition==0&&top>=mListPadding.top&&
+                                mFirstPosition+childCount<mItemCount&&
+                                bottom<=getHeight()-getPaddingBottom()mListPadding.bottom) {
+                                mTouchMode=TOUCH_MODE_REST;
+                                reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                            } else*/ {
+                                final VelocityTracker velocityTracker=mVelocityTracker;
+                                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                                final int initialVelocity=(int) velocityTracker.getYVelocity(mActivePointerId);
 
+                                if (Math.abs(initialVelocity)>mMinimumVelocity) {
+                                    if (mFlingRunnable==null) {
+                                        mFlingRunnable=new FlingRunnable();
+                                    }
+                                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+
+                                    mFlingRunnable.start(-initialVelocity);
                                 } else {
                                     mTouchMode=TOUCH_MODE_REST;
                                     reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                                 }
-                                return true;
-                            } else if (!mDataChanged&&mAdapter.isEnabled(motionPosition)) {
-                                performClick.run();
                             }
+                        } else {
+                            mTouchMode=TOUCH_MODE_REST;
+                            reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
                         }
-
-                        mTouchMode=TOUCH_MODE_REST;
-                        reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                        break;
                 }
 
-                mBeginClick=false;
+                setPressed(false);
 
-                updateSelectorState();
+                // Need to redraw since we probably aren't drawing the selector anymore
+                invalidate();
+
+                if (mVelocityTracker!=null) {
+                    mVelocityTracker.recycle();
+                    mVelocityTracker=null;
+                }
+
+                mActivePointerId=INVALID_POINTER;
+
+                /*if (PROFILE_SCROLLING) {
+                    if (mScrollProfilingStarted) {
+                        Debug.stopMethodTracing();
+                        mScrollProfilingStarted=false;
+                    }
+                }*/
+                break;
             }
-            break;
+
+            case MotionEvent.ACTION_CANCEL: {
+                mTouchMode=TOUCH_MODE_REST;
+                setPressed(false);
+                View motionView=this.getChildAt(mMotionPosition-mFirstPosition);
+                if (motionView!=null) {
+                    motionView.setPressed(false);
+                }
+                clearScrollingCache();
+
+                if (mVelocityTracker!=null) {
+                    mVelocityTracker.recycle();
+                    mVelocityTracker=null;
+                }
+
+                mActivePointerId=INVALID_POINTER;
+                break;
+            }
+
+            case MotionEvent.ACTION_POINTER_UP: {
+                onSecondaryPointerUp(ev);
+                final int x=(int) mLastTouchX;
+                final int y=(int) mLastTouchY;
+                final int motionPosition=pointToPosition(x, y);
+                if (motionPosition>=0) {
+                    // Remember where the motion event started
+                    v=getChildAt(motionPosition-mFirstPosition);
+                    //mMotionViewOriginalTop=v.getTop();
+                    mMotionPosition=motionPosition;
+                }
+                mTouchRemainderY=y;
+                break;
+            }
         }
+
         return true;
     }
+
+    /*private void onTouchDown(MotionEvent ev) {
+        mActivePointerId = ev.getPointerId(0);
+
+        if (mTouchMode == TOUCH_MODE_OVERFLING) {
+            // Stopped the fling. It is a scroll.
+            mFlingRunnable.endFling();
+            *//*if (mPositionScroller != null) {
+                mPositionScroller.stop();
+            }*//*
+            mTouchMode = TOUCH_MODE_OVERSCROLL;
+            mLastTouchX = (int) ev.getX();
+            mLastTouchY = (int) ev.getY();
+            mTouchRemainderY = mLastTouchY;
+            mMotionCorrection = 0;
+            //mDirection = 0;
+        } else {
+            final int x = (int) ev.getX();
+            final int y = (int) ev.getY();
+            int motionPosition = pointToPosition(x, y);
+
+            if (!mDataChanged) {
+                if (mTouchMode == TOUCH_MODE_FLINGING) {
+                    // Stopped a fling. It is a scroll.
+                    //createScrollingCache();
+                    mTouchMode = TOUCH_MODE_DRAGGING;
+                    mMotionCorrection = 0;
+                    motionPosition = pointToPosition((int) mLastTouchX, (int) mLastTouchY);//findMotionRow(y);
+                    mFlingRunnable.flywheelTouch();
+                } else if ((motionPosition >= 0) && getAdapter().isEnabled(motionPosition)) {
+                    // User clicked on an actual view (and was not stopping a
+                    // fling). It might be a click or a scroll. Assume it is a
+                    // click until proven otherwise.
+                    mTouchMode = TOUCH_MODE_DOWN;
+
+                    // FIXME Debounce
+                    if (mPendingCheckForTap == null) {
+                        mPendingCheckForTap = new CheckForTap();
+                    }
+
+                    postDelayed(mPendingCheckForTap, ViewConfiguration.getTapTimeout());
+                }
+            }
+
+            if (motionPosition >= 0) {
+                // Remember where the motion event started
+                final View v = getChildAt(motionPosition - mFirstPosition);
+                //mMotionViewOriginalTop = v.getTop();
+            }
+
+            mLastTouchX = x;
+            mLastTouchY = y;
+            mMotionPosition = motionPosition;
+            mTouchRemainderY = Integer.MIN_VALUE;
+        }
+
+        if (mTouchMode == TOUCH_MODE_DOWN && mMotionPosition != INVALID_POSITION
+            *//*&& performButtonActionOnTouchDown(ev)*//*) {
+            removeCallbacks(mPendingCheckForTap);
+        }
+    }
+
+    private void onTouchMove(MotionEvent ev) {
+        int pointerIndex = MotionEventCompat.findPointerIndex(ev, mActivePointerId);
+        if (pointerIndex == -1) {
+            pointerIndex = 0;
+            mActivePointerId = ev.getPointerId(pointerIndex);
+        }
+
+        if (mDataChanged) {
+            // Re-sync everything if data has been changed
+            // since the scroll operation can query the adapter.
+            layoutChildren(false);
+        }
+
+        final int y = (int) ev.getY(pointerIndex);
+
+        switch (mTouchMode) {
+            case TOUCH_MODE_DOWN:
+            case TOUCH_MODE_TAP:
+            case TOUCH_MODE_DONE_WAITING:
+                // Check if we have moved far enough that it looks more like a
+                // scroll than a tap. If so, we'll enter scrolling mode.
+                if (startScrollIfNeeded(y)) {
+                    break;
+                }
+                // Otherwise, check containment within list bounds. If we're
+                // outside bounds, cancel any active presses.
+                *//*final float x = ev.getX(pointerIndex);
+                if (!pointInView(x, y, mTouchSlop)) {
+                    setPressed(false);
+                    final View motionView = getChildAt(mMotionPosition - mFirstPosition);
+                    if (motionView != null) {
+                        motionView.setPressed(false);
+                    }
+                    removeCallbacks(mTouchMode == TOUCH_MODE_DOWN ?
+                        mPendingCheckForTap : mPendingCheckForLongPress);
+                    mTouchMode = TOUCH_MODE_DONE_WAITING;
+                    updateSelectorState();
+                }*//*
+                updateSelectorState();
+                break;
+            case TOUCH_MODE_DRAGGING:
+            case TOUCH_MODE_OVERSCROLL:
+                scrollIfNeeded(y);
+                break;
+        }
+    }
+
+    private void onTouchUp(MotionEvent ev) {
+        switch (mTouchMode) {
+            case TOUCH_MODE_DOWN:
+            case TOUCH_MODE_TAP:
+            case TOUCH_MODE_DONE_WAITING:
+                final int motionPosition = mMotionPosition;
+                final View child = getChildAt(motionPosition - mFirstPosition);
+                if (child != null) {
+                    if (mTouchMode != TOUCH_MODE_DOWN) {
+                        child.setPressed(false);
+                    }
+
+                    final float x = ev.getX();
+                    final boolean inList = x > getPaddingLeft()*//*mListPadding.left*//* && x < getWidth() - getPaddingRight()*//*mListPadding.right*//*;
+                    if (inList && !child.hasFocusable()) {
+                        if (mPerformClick == null) {
+                            mPerformClick = new PerformClick();
+                        }
+
+                        final PerformClick performClick = mPerformClick;
+                        performClick.mClickMotionPosition = motionPosition;
+                        performClick.rememberWindowAttachCount();
+
+                        //mResurrectToPosition = motionPosition;
+                        Log.d(TAG, "up:"+mTouchMode+"");
+                        if (mTouchMode == TOUCH_MODE_DOWN || mTouchMode == TOUCH_MODE_TAP) {
+                            removeCallbacks(mTouchMode == TOUCH_MODE_DOWN ?
+                                mPendingCheckForTap : mPendingCheckForLongPress);
+                            //mLayoutMode = LAYOUT_NORMAL;
+                            if (!mDataChanged && mAdapter.isEnabled(motionPosition)) {
+                                mTouchMode = TOUCH_MODE_TAP;
+                                //setSelectedPositionInt(mMotionPosition);
+                                layoutChildren(mDataChanged);
+                                child.setPressed(true);
+                                positionSelector(mMotionPosition, child);
+                                setPressed(true);
+                                if (mSelector != null) {
+                                    Drawable d = mSelector.getCurrent();
+                                    if (d != null && d instanceof TransitionDrawable) {
+                                        ((TransitionDrawable) d).resetTransition();
+                                    }
+                                }
+                                if (mTouchModeReset != null) {
+                                    removeCallbacks(mTouchModeReset);
+                                }
+                                mTouchModeReset = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mTouchModeReset = null;
+                                        mTouchMode = TOUCH_MODE_REST;
+                                        child.setPressed(false);
+                                        setPressed(false);
+                                        if (!mDataChanged *//*&& isAttachedToWindow()*//*) {
+                                            performClick.run();
+                                        }
+                                    }
+                                };
+                                postDelayed(mTouchModeReset,
+                                    ViewConfiguration.getPressedStateDuration());
+                            } else {
+                                mTouchMode = TOUCH_MODE_REST;
+                                updateSelectorState();
+                            }
+                            return;
+                        } else if (!mDataChanged && mAdapter.isEnabled(motionPosition)) {
+                            performClick.run();
+                        }
+                    }
+                }
+                mTouchMode = TOUCH_MODE_REST;
+                updateSelectorState();
+                break;
+            case TOUCH_MODE_DRAGGING:
+                final int childCount = getChildCount();
+                if (childCount > 0) {
+                    final int firstChildTop = getChildAt(0).getTop();
+                    final int lastChildBottom = getChildAt(childCount - 1).getBottom();
+                    final int contentTop = getPaddingTop();//mListPadding.top;
+                    final int contentBottom = getHeight() - getPaddingBottom();//mListPadding.bottom;
+                    if (mFirstPosition == 0 && firstChildTop >= contentTop &&
+                        mFirstPosition + childCount < mItemCount &&
+                        lastChildBottom <= getHeight() - contentBottom) {
+                        mTouchMode = TOUCH_MODE_REST;
+                        reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                    } else {
+                        final VelocityTracker velocityTracker = mVelocityTracker;
+                        velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+
+                        final int initialVelocity = (int)
+                            (velocityTracker.getYVelocity(mActivePointerId) * mVelocityScale);
+                        // Fling if we have enough velocity and we aren't at a boundary.
+                        // Since we can potentially overfling more than we can overscroll, don't
+                        // allow the weird behavior where you can scroll to a boundary then
+                        // fling further.
+                        if (Math.abs(initialVelocity) > mMinimumVelocity &&
+                            !((mFirstPosition == 0 &&
+                                firstChildTop == contentTop - mOverscrollDistance) ||
+                                (mFirstPosition + childCount == mItemCount &&
+                                    lastChildBottom == contentBottom + mOverscrollDistance))) {
+                            if (mFlingRunnable == null) {
+                                mFlingRunnable = new FlingRunnable();
+                            }
+                            reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+
+                            mFlingRunnable.start(-initialVelocity);
+                        } else {
+                            mTouchMode = TOUCH_MODE_REST;
+                            reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                            if (mFlingRunnable != null) {
+                                mFlingRunnable.endFling();
+                            }
+                            *//*if (mPositionScroller != null) {
+                                mPositionScroller.stop();
+                            }*//*
+                        }
+                    }
+                } else {
+                    mTouchMode = TOUCH_MODE_REST;
+                    reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                }
+                break;
+
+            case TOUCH_MODE_OVERSCROLL:
+                if (mFlingRunnable == null) {
+                    mFlingRunnable = new FlingRunnable();
+                }
+                final VelocityTracker velocityTracker = mVelocityTracker;
+                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                final int initialVelocity = (int) velocityTracker.getYVelocity(mActivePointerId);
+
+                reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+                if (Math.abs(initialVelocity) > mMinimumVelocity) {
+                    mFlingRunnable.startOverfling(-initialVelocity);
+                } else {
+                    mFlingRunnable.startSpringback();
+                }
+
+                break;
+        }
+
+        setPressed(false);
+
+        *//*if (mEdgeGlowTop != null) {
+            mEdgeGlowTop.onRelease();
+            mEdgeGlowBottom.onRelease();
+        }*//*
+
+        // Need to redraw since we probably aren't drawing the selector anymore
+        invalidate();
+        removeCallbacks(mPendingCheckForLongPress);
+        recycleVelocityTracker();
+
+        mActivePointerId = INVALID_POINTER;
+
+        *//*if (PROFILE_SCROLLING) {
+            if (mScrollProfilingStarted) {
+                Debug.stopMethodTracing();
+                mScrollProfilingStarted = false;
+            }
+        }
+
+        if (mScrollStrictSpan != null) {
+            mScrollStrictSpan.finish();
+            mScrollStrictSpan = null;
+        }*//*
+    }
+
+    private void onTouchCancel() {
+        switch (mTouchMode) {
+            case TOUCH_MODE_OVERSCROLL:
+                if (mFlingRunnable == null) {
+                    mFlingRunnable = new FlingRunnable();
+                }
+                mFlingRunnable.startSpringback();
+                break;
+
+            case TOUCH_MODE_OVERFLING:
+                // Do nothing - let it play out.
+                break;
+
+            default:
+                mTouchMode = TOUCH_MODE_REST;
+                setPressed(false);
+                final View motionView = this.getChildAt(mMotionPosition - mFirstPosition);
+                if (motionView != null) {
+                    motionView.setPressed(false);
+                }
+                clearScrollingCache();
+                removeCallbacks(mPendingCheckForLongPress);
+                recycleVelocityTracker();
+        }
+
+        *//*if (mEdgeGlowTop != null) {
+            mEdgeGlowTop.onRelease();
+            mEdgeGlowBottom.onRelease();
+        }*//*
+        mActivePointerId = INVALID_POINTER;
+    }*/
 
     /**
      * @param deltaY Pixels that content should move by
@@ -701,9 +1381,9 @@ public class StaggeredGridView extends ViewGroup {
                     lazyload=true;
 
                     if (!loadlock) {
-                        if (null!=mLoadListener) {
+                        /*if (null!=mLoadListener) {
                             mLoadListener.onLoadmore();
-                        }
+                        }*/
                         loadlock=true;
                     }
                 }
@@ -866,37 +1546,6 @@ public class StaggeredGridView extends ViewGroup {
                     mItemTops[col]=0;
                     mItemBottoms[col]=0;
                 }
-            }
-        }
-    }
-
-    @Override
-    public void computeScroll() {
-        if (mScroller.computeScrollOffset()) {
-            final int y=mScroller.getCurrY();
-            final int dy=(int) (y-mLastTouchY);
-            mLastTouchY=y;
-            final boolean stopped=!trackMotionScroll(dy, false);
-
-            if (!stopped&&!mScroller.isFinished()) {
-                postInvalidate();
-            } else {
-                if (stopped) {
-                    final int overScrollMode=ViewCompat.getOverScrollMode(this);
-                    if (overScrollMode!=ViewCompat.OVER_SCROLL_NEVER) {
-                        final EdgeEffectCompat edge;
-                        if (dy>0) {
-                            edge=mTopEdge;
-                        } else {
-                            edge=mBottomEdge;
-                        }
-                        edge.onAbsorb(Math.abs((int) mScroller.getCurrVelocity()));
-                        postInvalidate();
-                    }
-                    mScroller.abortAnimation();
-
-                }
-                mTouchMode=TOUCH_MODE_IDLE;
             }
         }
     }
@@ -2110,49 +2759,8 @@ public class StaggeredGridView extends ViewGroup {
         public void onChanged() {
             int lastCount=mItemCount;
             mItemCount=mAdapter.getCount();
-            lazyload=false;
-            if (lazyload) {
-                if (lastCount!=mItemCount) {
-                    removeView(getChildAt(getChildCount()-1));
 
-                    final int childCount=getChildCount();
-                    if (childCount>0) {
-                        // Repair the top and bottom column boundaries from the views we still have
-                        Arrays.fill(mItemTops, Integer.MAX_VALUE);
-                        Arrays.fill(mItemBottoms, Integer.MIN_VALUE);
-
-                        for (int i=0; i<childCount; i++) {
-                            final View child=getChildAt(i);
-                            final LayoutParams lp=(LayoutParams) child.getLayoutParams();
-                            final int top=child.getTop()-mItemMargin;
-                            final int bottom=child.getBottom();
-                            final LayoutRecord rec=mLayoutRecords.get(mFirstPosition+i);
-
-                            final int colEnd=Math.min(mColCount, lp.column+lp.span);
-                            for (int col=lp.column; col<colEnd; col++) {
-                                final int colTop=top;
-                                final int colBottom=bottom;
-                                if (colTop<mItemTops[col]) {
-                                    mItemTops[col]=colTop;
-                                }
-                                if (colBottom>mItemBottoms[col]) {
-                                    mItemBottoms[col]=colBottom;
-                                }
-                            }
-                        }
-
-                        for (int col=0; col<mColCount; col++) {
-                            if (mItemTops[col]==Integer.MAX_VALUE) {
-                                // If one was untouched, both were.
-                                mItemTops[col]=0;
-                                mItemBottoms[col]=0;
-                            }
-                        }
-                    }
-
-                    loadlock=false;
-                }
-            } else {
+            {
                 mDataChanged=true;
 
                 // TODO: Consider matching these back up if we have stable IDs.
@@ -2180,7 +2788,6 @@ public class StaggeredGridView extends ViewGroup {
                         Arrays.fill(mRestoreOffsets, 0);
                 }
 
-                loadlock=false;
             }
 
             // TODO: consider repopulating in a deferred runnable instead
@@ -2395,6 +3002,7 @@ public class StaggeredGridView extends ViewGroup {
     final class CheckForTap implements Runnable {
 
         public void run() {
+            Log.d(TAG, "CheckForTap:"+mTouchMode+" mMotionPosition:"+mMotionPosition);
             if (mTouchMode==TOUCH_MODE_DOWN) {
 
                 mTouchMode=TOUCH_MODE_TAP;
@@ -2402,7 +3010,7 @@ public class StaggeredGridView extends ViewGroup {
                 if (child!=null&&!child.hasFocusable()) {
 
                     if (!mDataChanged) {
-                        //child.setSelected(true);
+                        child.setSelected(true);
                         child.setPressed(true);
 
                         setPressed(true);
@@ -2434,8 +3042,6 @@ public class StaggeredGridView extends ViewGroup {
                         } else {
                             mTouchMode=TOUCH_MODE_DONE_WAITING;
                         }
-
-                        postInvalidate();
                     } else {
                         mTouchMode=TOUCH_MODE_DONE_WAITING;
                     }
@@ -2449,6 +3055,7 @@ public class StaggeredGridView extends ViewGroup {
         public void run() {
             final int motionPosition=mMotionPosition;
             final View child=getChildAt(motionPosition-mFirstPosition);
+            Log.d(TAG, "CheckForLongPress:"+motionPosition+" child:"+child);
             if (child!=null) {
                 final int longPressPosition=mMotionPosition;
                 final long longPressId=mAdapter.getItemId(mMotionPosition);
@@ -2704,7 +3311,7 @@ public class StaggeredGridView extends ViewGroup {
          * @param position The position of the view in the adapter.
          * @param id       The row id of the item that was clicked.
          */
-        void onItemClick(StaggeredGridView parent, View view, int position, long id);
+        void onItemClick(StaggeredGridView3 parent, View view, int position, long id);
     }
 
     /**
@@ -2743,7 +3350,7 @@ public class StaggeredGridView extends ViewGroup {
          * @param id       The row id of the item that was clicked
          * @return true if the callback consumed the long click, false otherwise
          */
-        boolean onItemLongClick(StaggeredGridView parent, View view, int position, long id);
+        boolean onItemLongClick(StaggeredGridView3 parent, View view, int position, long id);
     }
 
     /**
@@ -2785,7 +3392,7 @@ public class StaggeredGridView extends ViewGroup {
     public void setHeaderView(View v) {
         mHeaderView=v;
 
-        StaggeredGridView.LayoutParams lp=new StaggeredGridView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT);
+        StaggeredGridView3.LayoutParams lp=new StaggeredGridView3.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.span=Integer.MAX_VALUE;
         mHeaderView.setLayoutParams(lp);
     }
@@ -2793,14 +3400,35 @@ public class StaggeredGridView extends ViewGroup {
     public void setFooterView(View v) {
         mFooterView=v;
 
-        StaggeredGridView.LayoutParams lp=new StaggeredGridView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT);
+        StaggeredGridView3.LayoutParams lp=new StaggeredGridView3.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.span=Integer.MAX_VALUE;
         mFooterView.setLayoutParams(lp);
     }
 
     //-------------------------------------------------
+    private void initOrResetVelocityTracker() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain();
+        } else {
+            mVelocityTracker.clear();
+        }
+    }
+
+    private void initVelocityTrackerIfNotExists() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain();
+        }
+    }
+
+    private void recycleVelocityTracker() {
+        if (mVelocityTracker != null) {
+            mVelocityTracker.recycle();
+            mVelocityTracker = null;
+        }
+    }
+
     /**
-     * The last scroll state reported to clients through {@link OnScrollListener}.
+     * The last scroll state reported to clients through {@link android.widget.AbsListView.OnScrollListener}.
      */
     private int mLastScrollState = OnScrollListener.SCROLL_STATE_IDLE;
 
@@ -2838,47 +3466,20 @@ public class StaggeredGridView extends ViewGroup {
      * @param duration Duration of the scroll animation in milliseconds.
      */
     public void smoothScrollBy(int distance, int duration) {
-        smoothScrollBy(distance, duration, false);
-    }
-
-    void smoothScrollBy(int distance, int duration, boolean linear) {
-        /*if (mFlingRunnable == null) {
-            mFlingRunnable = new FlingRunnable();
-        }*/
-
-        // No sense starting to scroll if we're not going anywhere
-        final int firstPos = mFirstPosition;
-        final int childCount = getChildCount();
-        final int lastPos = firstPos + childCount;
-        final int topLimit = getPaddingTop();
-        final int bottomLimit = getHeight() - getPaddingBottom();
-
-        if (distance == 0 || mItemCount == 0 || childCount == 0 ||
-            (firstPos == 0 && getChildAt(0).getTop() == topLimit && distance < 0) ||
-            (lastPos == mItemCount &&
-                getChildAt(childCount - 1).getBottom() == bottomLimit && distance > 0)) {
-            /*mFlingRunnable.endFling();
-            if (mPositionScroller != null) {
-                mPositionScroller.stop();
-            }*/
-            Log.d(TAG, "smoothScrollBy end.");
-            mScroller.abortAnimation();
+        if (mFlingRunnable==null) {
+            mFlingRunnable=new FlingRunnable();
         } else {
-            /*reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
-            mFlingRunnable.startScroll(distance, duration, linear);*/
-            //mScroller.fling(0, 0, 0, distance, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            Log.d(TAG, "smoothScrollBy.start:"+distance+" curry:"+mScroller.getCurrY());
-            mScroller.startScroll(0, mScroller.getCurrY(), 0, -distance, duration);
-            invalidate();
+            mFlingRunnable.endFling();
         }
+        mFlingRunnable.startScroll(distance, duration);
     }
 
-    public boolean performAccessibilityAction(int action) {
+    /*public boolean performAccessibilityAction(int action) {
         switch (action) {
             case 0x00001000: {
                 if (isEnabled()&&getLastVisiblePosition()<mAdapter.getWrappedAdapter().getCount()-1) {
                     final int viewportHeight=getHeight()-10-getPaddingTop()-getPaddingBottom();
-                    smoothScrollBy(viewportHeight, 350);
+                    smoothScrollBy(viewportHeight, 250);
                     return true;
                 }
             }
@@ -2886,14 +3487,14 @@ public class StaggeredGridView extends ViewGroup {
             case 0x00002000: {
                 if (isEnabled()&&mFirstPosition>0) {
                     final int viewportHeight=getHeight()-10-getPaddingTop()-getPaddingBottom();
-                    smoothScrollBy(-viewportHeight, 350);
+                    smoothScrollBy(-viewportHeight, 250);
                     return true;
                 }
             }
             return false;
         }
         return false;
-    }
+    }*/
 
     /**
      * Fires an "on scroll state changed" event to the registered
@@ -2903,11 +3504,145 @@ public class StaggeredGridView extends ViewGroup {
      * @param newState The new scroll state.
      */
     void reportScrollStateChange(int newState) {
+        Log.d(TAG, "reportScrollStateChange:"+newState);
         if (newState != mLastScrollState) {
             if (mOnScrollListener != null) {
                 mLastScrollState = newState;
                 mOnScrollListener.onScrollStateChanged(null, newState);
             }
         }
+    }
+
+    /**
+     * Responsible for fling behavior. Use {@link #start(int)} to
+     * initiate a fling. Each frame of the fling is handled in {@link #run()}.
+     * A FlingRunnable will keep re-posting itself until the fling is done.
+     *
+     */
+    private class FlingRunnable implements Runnable {
+
+        /**
+         * Tracks the decay of a fling scroll
+         */
+        private final Scroller mScroller;
+
+        /**
+         * Y value reported by mScroller on the previous fling
+         */
+        private int mLastFlingY;
+
+        FlingRunnable() {
+            mScroller=new Scroller(getContext());
+        }
+
+        void start(int initialVelocity) {
+            initialVelocity=(initialVelocity);
+
+            int initialY=initialVelocity<0 ? Integer.MAX_VALUE : 0;
+            mLastFlingY=initialY;
+            mScroller.fling(0, initialY, 0, initialVelocity,
+                0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
+
+            mTouchMode=TOUCH_MODE_FLINGING;
+            post(this);
+
+            /*if (PROFILE_FLINGING) {
+                if (!mFlingProfilingStarted) {
+                    Debug.startMethodTracing("AbsListViewFling");
+                    mFlingProfilingStarted=true;
+                }
+            }*/
+        }
+
+        void startScroll(int distance, int duration) {
+            int initialY=distance<0 ? Integer.MAX_VALUE : 0;
+            mLastFlingY=initialY;
+            mScroller.startScroll(0, initialY, 0, distance, duration);
+            mTouchMode=TOUCH_MODE_FLINGING;
+            post(this);
+        }
+
+        private void endFling() {
+            mLastFlingY=0;
+            mTouchMode=TOUCH_MODE_REST;
+
+            reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+            clearScrollingCache();
+
+            removeCallbacks(this);
+
+            /*if (mPositionScroller!=null) {
+                removeCallbacks(mPositionScroller);
+            }*/
+            mScroller.forceFinished(true);
+        }
+
+        public void run() {
+            switch (mTouchMode) {
+                default:
+                    return;
+
+                case TOUCH_MODE_FLINGING: {
+                    if (mItemCount==0||getChildCount()==0) {
+                        endFling();
+                        return;
+                    }
+
+                    final Scroller scroller=mScroller;
+                    boolean more=scroller.computeScrollOffset();
+                    final int y=scroller.getCurrY();
+
+                    // Flip sign to convert finger direction to list items direction
+                    // (e.g. finger moving down means list is moving towards the top)
+                    int delta=mLastFlingY-y;
+
+                    // Pretend that each frame of a fling scroll is a touch scroll
+                    if (delta>0) {
+                        // List is moving towards the top. Use first view as mMotionPosition
+                        mMotionPosition=mFirstPosition;
+                        //final View firstView = getChildAt(0);
+                        //mMotionViewOriginalTop = firstView.getTop();
+                        //mMotionViewOriginalTop=getScrollChildTop();
+
+                        // Don't fling more than 1 screen
+                        // delta = Math.min(getHeight() - mPaddingBottom - mPaddingTop - 1, delta);
+                        delta=Math.min(getHeight()-getPaddingBottom()-getPaddingTop()-1, delta);
+                    } else {
+                        // List is moving towards the bottom. Use last view as mMotionPosition
+                        int offsetToLast=getChildCount()-1;
+                        mMotionPosition=mFirstPosition+offsetToLast;
+
+                        //final View lastView = getChildAt(offsetToLast);
+                        //mMotionViewOriginalTop = lastView.getTop();
+                        //mMotionViewOriginalTop=getScrollChildBottom();
+
+                        // Don't fling more than 1 screen
+                        // delta = Math.max(-(getHeight() - mPaddingBottom - mPaddingTop - 1), delta);
+                        delta=Math.max(-(getHeight()-getPaddingBottom()-getPaddingTop()-1), delta);
+                    }
+
+                    final boolean atEnd=trackMotionScroll(delta, false);
+
+                    if (more&&!atEnd) {
+                        invalidate();
+                        mLastFlingY=y;
+                        post(this);
+                    } else {
+                        endFling();
+                        /*if (PROFILE_FLINGING) {
+                            if (mFlingProfilingStarted) {
+                                Debug.stopMethodTracing();
+                                mFlingProfilingStarted=false;
+                            }
+                        }*/
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void clearScrollingCache() {
+
     }
 }
