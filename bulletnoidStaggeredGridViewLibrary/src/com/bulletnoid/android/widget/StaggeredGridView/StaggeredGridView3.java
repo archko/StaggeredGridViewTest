@@ -190,17 +190,6 @@ public class StaggeredGridView3 extends ViewGroup {
      */
     private static final int INVALID_POINTER = -1;
 
-
-    /**
-     * Maximum distance to overscroll by during edge effects
-     */
-    int mOverscrollDistance;
-
-    /**
-     * Maximum distance to overfling during edge effects
-     */
-    int mOverflingDistance;
-
     private final EdgeEffectCompat mTopEdge;
     private final EdgeEffectCompat mBottomEdge;
 
@@ -395,8 +384,6 @@ public class StaggeredGridView3 extends ViewGroup {
 
         mMinimumVelocity = vc.getScaledMinimumFlingVelocity();
         mMaximumVelocity = vc.getScaledMaximumFlingVelocity();
-        mOverscrollDistance = vc.getScaledOverscrollDistance(); //TODO
-        mOverflingDistance = vc.getScaledOverflingDistance();
     }
 
     /**
@@ -563,170 +550,6 @@ public class StaggeredGridView3 extends ViewGroup {
         }
 
         return false;
-    }
-
-    private void scrollIfNeeded(int y) {
-        final int rawDeltaY =(int) (y - mLastTouchY);
-        final int deltaY = rawDeltaY - mMotionCorrection;
-        int incrementalDeltaY =mTouchRemainderY != Integer.MIN_VALUE ? (int) (y-mTouchRemainderY) : deltaY;
-
-        if (mTouchMode == TOUCH_MODE_DRAGGING) {
-            /*if (PROFILE_SCROLLING) {
-                if (!mScrollProfilingStarted) {
-                    Debug.startMethodTracing("AbsListViewScroll");
-                    mScrollProfilingStarted = true;
-                }
-            }
-
-            if (mScrollStrictSpan == null) {
-                // If it's non-null, we're already in a scroll.
-                mScrollStrictSpan = StrictMode.enterCriticalSpan("AbsListView-scroll");
-            }*/
-
-            if (y != mTouchRemainderY) {
-                // We may be here after stopping a fling and continuing to scroll.
-                // If so, we haven't disallowed intercepting touch events yet.
-                // Make sure that we do so in case we're in a parent that can intercept.
-                /*if ((mGroupFlags & FLAG_DISALLOW_INTERCEPT) == 0 &&
-                    Math.abs(rawDeltaY) > mTouchSlop) {
-                    final ViewParent parent = getParent();
-                    if (parent != null) {
-                        parent.requestDisallowInterceptTouchEvent(true);
-                    }
-                }*/
-
-                final int motionIndex;
-                if (mMotionPosition >= 0) {
-                    motionIndex = mMotionPosition - mFirstPosition;
-                } else {
-                    // If we don't have a motion position that we can reliably track,
-                    // pick something in the middle to make a best guess at things below.
-                    motionIndex = getChildCount() / 2;
-                }
-
-                int motionViewPrevTop = 0;
-                View motionView = this.getChildAt(motionIndex);
-                if (motionView != null) {
-                    motionViewPrevTop = motionView.getTop();
-                }
-
-                // No need to do all this work if we're not going to move anyway
-                boolean atEdge = false;
-                if (incrementalDeltaY != 0) {
-                    atEdge = trackMotionScroll(deltaY, true);
-                }
-
-                // Check to see if we have bumped into the scroll limit
-                motionView = this.getChildAt(motionIndex);
-                if (motionView != null) {
-                    // Check if the top of the motion view is where it is
-                    // supposed to be
-                    final int motionViewRealTop = motionView.getTop();
-                    if (atEdge) {
-                        // Apply overscroll
-
-                        int overscroll = -incrementalDeltaY -
-                            (motionViewRealTop - motionViewPrevTop);
-                        overScrollBy(0, overscroll, 0, getScrollY(), 0, 0,
-                            0, mOverscrollDistance, true);
-                        if (Math.abs(mOverscrollDistance) == Math.abs(getScrollY())) {
-                            // Don't allow overfling if we're at the edge.
-                            if (mVelocityTracker != null) {
-                                mVelocityTracker.clear();
-                            }
-                        }
-
-                        final int overscrollMode = ViewCompat.getOverScrollMode(this);
-                        if (overscrollMode == OVER_SCROLL_ALWAYS ||
-                            (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
-                                !contentFits())) {
-                            //mDirection = 0; // Reset when entering overscroll.
-                            mTouchMode = TOUCH_MODE_OVERSCROLL;
-                            /*if (rawDeltaY > 0) {
-                                mEdgeGlowTop.onPull((float) overscroll / getHeight());
-                                if (!mEdgeGlowBottom.isFinished()) {
-                                    mEdgeGlowBottom.onRelease();
-                                }
-                                invalidate(mEdgeGlowTop.getBounds(false));
-                            } else if (rawDeltaY < 0) {
-                                mEdgeGlowBottom.onPull((float) overscroll / getHeight());
-                                if (!mEdgeGlowTop.isFinished()) {
-                                    mEdgeGlowTop.onRelease();
-                                }
-                                invalidate(mEdgeGlowBottom.getBounds(true));
-                            }*/
-                        }
-                    }
-                    mLastTouchY = y;
-                }
-                mTouchRemainderY = y;
-            }
-        } else if (mTouchMode == TOUCH_MODE_OVERSCROLL) {
-            if (y != mTouchRemainderY) {
-                final int oldScroll = getScrollY();
-                final int newScroll = oldScroll - incrementalDeltaY;
-                int newDirection = y > mTouchRemainderY ? 1 : -1;
-
-                /*if (mDirection == 0) {
-                    mDirection = newDirection;
-                }*/
-
-                int overScrollDistance = -incrementalDeltaY;
-                if ((newScroll < 0 && oldScroll >= 0) || (newScroll > 0 && oldScroll <= 0)) {
-                    overScrollDistance = -oldScroll;
-                    incrementalDeltaY += overScrollDistance;
-                } else {
-                    incrementalDeltaY = 0;
-                }
-
-                if (overScrollDistance != 0) {
-                    overScrollBy(0, overScrollDistance, 0, getScrollY(), 0, 0,
-                        0, mOverscrollDistance, true);
-                    final int overscrollMode = ViewCompat.getOverScrollMode(this);
-                    if (overscrollMode == OVER_SCROLL_ALWAYS ||
-                        (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
-                            !contentFits())) {
-                        /*if (rawDeltaY > 0) {
-                            mEdgeGlowTop.onPull((float) overScrollDistance / getHeight());
-                            if (!mEdgeGlowBottom.isFinished()) {
-                                mEdgeGlowBottom.onRelease();
-                            }
-                            invalidate(mEdgeGlowTop.getBounds(false));
-                        } else if (rawDeltaY < 0) {
-                            mEdgeGlowBottom.onPull((float) overScrollDistance / getHeight());
-                            if (!mEdgeGlowTop.isFinished()) {
-                                mEdgeGlowTop.onRelease();
-                            }
-                            invalidate(mEdgeGlowBottom.getBounds(true));
-                        }*/
-                    }
-                }
-
-                if (incrementalDeltaY != 0) {
-                    // Coming back to 'real' list scrolling
-                    /*if (mScrollY != 0) {
-                        mScrollY = 0;
-                        invalidateParentIfNeeded();
-                    }*/
-
-                    trackMotionScroll(incrementalDeltaY, true);
-
-                    mTouchMode = TOUCH_MODE_DRAGGING;
-
-                    // We did not scroll the full amount. Treat this essentially like the
-                    // start of a new touch scroll
-                    final int motionPosition = findClosestMotionRow(y);
-
-                    mMotionCorrection = 0;
-                    View motionView = getChildAt(motionPosition - mFirstPosition);
-                    //mMotionViewOriginalTop = motionView != null ? motionView.getTop() : 0;
-                    mLastTouchY = y;
-                    mMotionPosition = motionPosition;
-                }
-                mTouchRemainderY = y;
-                //mDirection = newDirection;
-            }
-        }
     }
 
     int findMotionRow(int y) {
