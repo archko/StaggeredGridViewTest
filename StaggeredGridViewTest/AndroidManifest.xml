@@ -151,5 +151,14 @@
                 <category android:name="archko.test"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".bulletnoid.TestNewStaggeredActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_stg_ptr_new">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

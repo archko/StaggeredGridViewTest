@@ -9,4 +9,170 @@ AndroidStaggeredGrid是通过AbsListView的子类实现的.与PinterestLikeAdapt
 	还有一个问题就是在Fragment中使用,已经滚动到某一位置,第一项已经看不见了.然后切换到别的Fragment,再回来,位置计算不对.也可能是因为加入了下拉刷新导致的.
 
 发现一个比较严重的问题,smanikandan14library的实现方式与迷尚美图类似,但是它没有处理回收,所以如果以原程序的方式,在加载布局时,就加载了图片,会导致内存不足.而如果处理了回收的问题,动态添加布局,就有一个问题了.因为原程序在添加子元素时,就已经知道了高,所以重新计算,需要重新得到高的和.如果滚动中一直计算这个,性能好坏未知.如何有效的处理回收的问题,也是个麻烦的事.
-	
+
+
+关于系统的ListView:
+AdapterView
+对addView进行了覆盖.但都抛出异常,需要子类来实现具体的添加操作,为什么不直接实现呢?大概是因为子类有不同的实现方式.
+对removeView的操作同上.
+提供了Adapter的操作.setAdapter/getAdateper,是泛型的方法.因为是泛型的,所以这里也不会有对T操作.
+	既然它是泛型的,当然onLayout方法也是比较普通的了.就是一个getHeight().
+因为引入了Adapter,所以会有onItemClick/onItemLongClick方法与监听器接口.performItemClick方法处理点击.长按是特殊的点击.
+它是一个聚集,有选中的位置,选中位置的项id.选中的View等.
+getSelectedView是抽象的,需要子类去实现.因为这里无法确定具体的位置.onLayout中没有指明.
+其它三个方法则在这里实现.选中的位置,与选中的项,都是在这里已知的.不管子类是怎么样的布局,这些内容保持不变.
+getCount()
+	返回数量,这里的数量不是在调用此方法时,再从adapter中取,而是在setAdapter中就已经处理了.这样可以在下一次更新View时,知道adapter中的数量与这个值是否一致.
+getPositionForView(View)
+	获取位置,就是从子节点中一个一个搜索.搜索是先获取要搜索的view的父节点,当父节点是当前的AdapterView时停止.
+定义了第一个位置与最后一个位置.在expandablelistview中覆盖.
+setSelection(),抽象方法,定义了这个方法,用于选中一个View,选中是很有用的.getSelectedView()是抽象的,所以此方法也只能是抽象的.
+setEmptyView()
+	聚集,可能数据为空,所以定义了这样的一个视图.因为数据与具体的类型无关,所以这个方法在这里实现.它的处理方式,是两个View的可见与不可见的切换.不是在ListView中嵌入一个View.所以设置的是外部的View.
+获取位置的项与id,虽然是泛型,所以返回的也一个Object.而且都是通过Adapter操作的.
+setOnClickListener抛出异常,不支持.
+AdapterDataSetObserver类
+	这是Adapter中很重要的一个类,适配器的观察者类.一般自定义的都是参考此类,覆盖了两个方法onChanged(),可以从savestate中恢复.onInvalidated()是全部重置. 
+接着是选中的监听器操作.AccessibilityEvent相关的一些方法.
+handleDataChanged()
+	定义了处理数据改变的方法.默认的处理方式是查找之前选中的位置,查到就设置选中的项,保持在数据集变化时,可以直接定位.如果找不到.就重置,回到第一个位置.
+接着就是关于选中的位置的一些操作了.如查找选中的位置项.
+AdapterContextMenuInfo
+	用于上下文菜单.静态的类,在这里没有用到,供子类使用.
+
+AdapterView的子类也不少.最主要的是AbsListView/AbsSpinner两个.另外AdapterViewAnimator不常用.
+
+非直接继承的类就更多了.此次只研究ListView.而GridView与ListView是同级的.
+AdapterView属于高度抽象的类,去除了不必要的麻烦如addview等.然而定义了一些抽象的方法getselectedview等.对适配器的操作也仅限于泛型能达到的范围.如果要继承自它,实现一个适配器的View,需要自己处理onMeasure(),onLayout()实现布局,然后是onTouchEvent()实现触摸事件,比如滚动等.
+它并没有定义obtainView,所以在布局时,需要自己处理.即使AbsListView定义了obtainView,也是关于回收站的,在它本身并无直接调用.com.artifex.mupdfdemo.ReaderView类就是继承了AdapterView.实现左右两个视图滚动.由于它不处理onInterceptTouchEvent,所以如果子视图中需要处理更多的触摸事件,就要自己定义了.
+
+
+AbsListView
+它实现了一些接口,先不讨论.
+它是可以从xml生成的,但它是抽象类.所以构造函数中会有一些公用的属性.如缓存的颜色,selector,快速滚动块等.再调用initAbsListView()初始化.
+
+setAdapter()
+	只是处理了选中的id,所以子类需要覆盖它.甚至它都没有对adapter赋值.
+getCheckedItemCount(),isItemChecked(int position),getCheckedItemPosition(),getCheckedItemPositions(),getCheckedItemIds(),clearChoices(),setItemChecked(int position, boolean value)这些方法都是对选中的项进行处理,
+
+performItemClick()
+	在这里实现了选中的操作,父类只是一个简单的处理.并不处理选中的项,因为有不同的CHOICEMODE.
+updateOnScreenCheckedViews()
+
+处理完选择后,就是contentFits().这个判断ListView是不是充满了边界.
+然后就是快速滚动的滑块.setFastScrollEnabled(),setFastScrollerEnabledUiThread(),setFastScrollAlwaysVisible(),setFastScrollerAlwaysVisibleUiThread(),isFastScrollAlwaysVisible()等.
+接着就是滚动处理,如垂直滚动栏,是否平滑滚动等一系列滚动的相关方法.
+接着还是滚动相关的,如监听器,然后一些AccessibilityEvent相关操作.
+
+setStackFromBottom()
+	快速地返回列表的顶部.
+接下来是相关的两个方法:isStackFromBottom(),requestLayoutIfNecessary().
+
+接着是SavedState相关的类与方法.
+	这个类定义了选中的id,第一个元素的id,顶部的位置,高,位置,过滤字符串,是不是ActionMode,选中的状态与id等.
+	在恢复状态时,需要重新布局.
+然后是过滤字符串,不讨论.
+
+requestLayout()
+	由于可能多个触发点,所以需要判断是不是在布局过程中.
+
+然后是几个关于滚动块的一些数值计算:computeVerticalScrollExtent(), computeVerticalScrollOffset(),computeVerticalScrollRange(),不是很清楚这些方法的作用.
+然后是淡入淡出的一些计算.
+上面都是一些边缘处理.下面开始是主要部分了.
+
+onMeasure(),这里也没有具体的布局实现.
+onLayout(),是调用每个子元素进行layout,然后最后调用接下来的layoutChildren()。
+updateScrollIndicators()，滚动指示器。这个跟下面的setScrollIndicators(View up, View down)对应。这两个其实多数应用都没有用到。
+
+getSelectedView(),父类这个方法是抽象的,所以这里有了对象.
+接着是getPaddingXX.
+
+obtainView(int position, boolean[] isScrap)
+	一个相当重要的方法.它处理了Adapter中的view的获取,和回收的处理.子类一般不覆盖此方法.直接调用.
+positionSelector(),shouldShowSelector(),drawSelector(Canvas canvas),等是关于选中的背景图片的处理.
+dispatchDraw(Canvas canvas)这是一个比较重要的方法.这在View是派遣子View的绘画,但子类覆盖它,主要用于,在子元素绘画前做一些事.在这里它做的事是画选择背景.因为有在前与后两种状况.其余是padding.
+onSizeChanged(),大小改变时,要处理的是同步位置的状态,快速滚动的大小.
+
+onAttachedToWindow(),onDetachedFromWindow(),onWindowFocusChanged(),不讨论.
+onCancelPendingInputEvents(),取消所有的键盘点击与触摸点击事件.
+然后就是一些点击事件了,长按,短按,键盘点击.performLongPress()处理长按.
+下面的一些方法是关于点击事件的,比如上下文菜单,选中状态派遣.
+
+事件:
+startScrollIfNeeded(),scrollIfNeeded()第一个方法,判断是否有滚动必要.
+然后跟着是onTouch事件,这是ListView中的事件的主要方式.它的子类一般不处理事件,都是在这里处理的.可以看到onTouchEvent()是一个关键的方法,它分成四个onTouchDown,onTouchMove,onTouchUp,onTouchCancel,较旧的版本更清晰了,不再全部写在onTouchEvent()中.
+
+draw(Canvas canvas).不讨论
+三个VelocityTracker方法,两个初始化,一个回收,这里是每次创建,而在StaggeredGridView是创建一次.不回收.
+onInterceptTouchEvent(MotionEvent ev),主要是处理事件的接收者.还有就是触摸的状态变化.
+下面全是关于滚动的方法,如Fling,滚动到具体位置等.
+
+下面是一些事件的处理.滚动的位置处理等
+fillGap(boolean down)也没怎么看明白,就是填充空白区.
+下面是查找一些y所在的位置项.如:resurrectSelection(),findClosestMotionRow(),confirmCheckedPositionsById()等.
+
+handleDataChanged()
+	覆盖了父类的,没有调用父类的方法.
+两个关于弹出框的方法.一直也没有用过popupmenu.
+一个静态的getDistance()方法,在屏幕上计算焦点位置.
+
+几个关于字符串过滤的方法.isInFilterMode(),sendToTextFilter(),还有键盘的.onCreateInputConnection(),class InputConnectionWrapper ,onFilterComplete(),等.这些都很少用到.
+
+然后是一些LayoutParams相关的方法,产生默认的布局参数.
+transcriptmode(可以滚动到底部),背景色.
+
+RemoteViews相关的几个上方法,也很少用到.
+剩下就是回收站接口定义,DataSetObserver定义,ChoiceMode类,布局参数类等了.
+
+从源码中可以看到,AbsListView对子类如何布局,并没有太多方法,具体的布局是不同的子类不同的实现的.但它有一些公用的方法可以供子类使用,而不必覆盖.如选择背景,计算位置,滚动事件,滚动块,获取View,
+它的布局极简单,因为具体的布局全是由子类来处理的,它只是定义了一个layoutChildren()方法.
+
+
+ListView
+这个类,还有不少的子类,现在只讨论它.对于目前的一些开源列表实现,多数是依据这个类演变出来的,进行一些修改.更多的是直接复制一份,然后修改部分方法.
+这个类引入了一个header/footer,而adapter也使用了一个新的HeaderViewListAdapter类,所以直接从ListView获取adapter时要注意,可能不是原来的adapter类.这是一个对象的适配,它用于header/footer的处理.
+
+从构造函数出发:继承了父类的一些属性,它还包含很多自己的属性.
+getMaxScrollAmount(),adjustViewsUpOrDown(),这两个方法虽然不起眼,但很重要,前者在滚动时都会用到.后者在布局中都会用到.
+
+然后addHeaderView(),等关于header/footer的一些方法了.
+
+setAdapter()
+	这个方法,与父类的不同,它使用了WrapperListAdapter来包装,进行一个适配.但如果header/footer的数量有一个大于0,就使用包装类,否则还是原来的.很重要的一点是addHeaderView等需要在setAdapter前处理.如果想要改变主意需要先setAdapter(null),然后再添加.或许可以.
+
+requestChildRectangleOnScreen()
+	名字上看是请求一个屏幕区域大小.这个方法,特别是在机顶盒中要实现的,否则无法定位选中的焦点.
+
+下面是fillXX方法,这是主要的布局方法.它们处理了各种布局的情况,因为ListView不像其它,它可能从底部,也可能从顶部,还可能从中间开始布局.所以onLayout中,不能从头到尾地开始.
+
+moveSelection(),移动选择位置.class FocusSelector等也是选择相关的.
+
+onMeasure()这里的测量覆盖了父类的方法.父类只是处理了padding,所以这里要具体测量.
+	它先测量第一个元素的大小.然后是高宽,否则它只有padding,在StaggeredGridView中,它就比较简单地计算自己的高与宽,不处理第一个子节点的大小.
+measureScrapChild是测量子元素的方法.它在measureHeightOfChildren中调用,也在onMeasure中调用.计算高与宽.
+然后一些辅助的方法.
+
+layoutChildren()
+	这是极其重要的方法,因为父类中,并无对其有具体的布局,所以添加View的主要任务就在这里了. 它先处理选中的位置.
+	然后判断数据的数量.再处理accessibility 聚焦.
+	将所有的子元素放到回收站中,可能会再利用.再将Parent中清除所有的元素(引用关联).
+	最后根据不同的mLayoutMode,进行不同的布局调用.布局调用完成后,recycleBin.scrapActiveViews();清除剩余的View.然后处理选中的位置.差不多完成了.再有状态的变化,调用监听器等.
+makeAndAddView().
+	创建和添加View,通过obtainView,然后调用setupChild完成了元素的设置.一些自定义的列表,也通常是这个名字.
+setupChild()
+	它通过attachViewToParent(),addViewInLayout()两个方法添加到容器中.添加并不表示已经定位了.这是我之前的错误认为.通过y的值,来重新布局.于是,添加完后就调用layout布局.把计算好的高宽放进去.
+
+接着是一些关于选择的方法.setSelection(),setSelectionFromTop(),setSelectionInt(),lookForSelectablePosition(),lookForSelectablePositionAfter(),setSelectionAfterHeaderView().
+然后是键盘事件.这里不讨论.键盘事件也会导致翻页滚动,所以有滚动的一些方法.
+
+这里还有关于选择的处理.选中后,大小可能变化,所以有了测量大小的方法.measureItem(),重新布局relayoutMeasuredItem().
+中间一些方法不讨论.
+
+dispatchDraw().这个在绘制子元素前调用的.其它略,它有一个画分割线的方法.
+接着就是一些分割线的方法了. 比如高,drawable等.
+剩下的不讨论了.
+
+ListView中主要的方法是布局.与选择块的处理.还有header/footer.省去选择块处理,也不处理header/footer,就剩下布局了.这里的布局是多方面可以参考的.过程还是清楚明白的.
+
+
+
