@@ -15,6 +15,7 @@ import com.handmark.pulltorefresh.library.LoadingLayoutProxy;
 import com.handmark.pulltorefresh.library.OverscrollHelper;
 import com.handmark.pulltorefresh.library.internal.EmptyViewMethodAccessor;
 import com.handmark.pulltorefresh.library.internal.LoadingLayout;
+import com.huewu.pla.lib.internal.PLA_AbsListView;
 import com.huewu.pla.lib.internal.PLA_ListView;
 import com.me.archko.staggered.R;
 
@@ -249,6 +250,16 @@ public class PullToRefreshPLAListView extends PullToRefreshPLAAdapterViewBase<PL
                 setScrollingWhileRefreshingEnabled(true);
             }
         }
+    }
+
+    @Override
+    public void onScrollStateChanged(PLA_AbsListView view, int scrollState) {
+
+    }
+
+    @Override
+    public void onScroll(PLA_AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
     }
 
     @TargetApi(9)

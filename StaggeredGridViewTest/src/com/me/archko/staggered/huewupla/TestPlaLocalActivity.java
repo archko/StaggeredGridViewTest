@@ -37,7 +37,7 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
 
         mAdapterView=(MultiColumnListView) findViewById(R.id.list);
         mAdapterView.setSelector(R.drawable.holo_selector);
-        mAdapterView.setRecyclerListener(new RecycleHolder());
+        /*mAdapterView.setRecyclerListener(new RecycleHolder());
         mAdapterView.setOnScrollListener(new PLA_AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(PLA_AbsListView view, int scrollState) {
@@ -53,7 +53,7 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
             public void onScroll(PLA_AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
 
             }
-        });
+        });*/
 
         {
             for (int i=0; i<2; ++i) {
