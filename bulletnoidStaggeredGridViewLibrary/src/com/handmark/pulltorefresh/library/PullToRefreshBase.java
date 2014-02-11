@@ -38,17 +38,17 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
     // Constants
     // ===========================================================
 
-    static final boolean DEBUG=false;
+    protected static final boolean DEBUG=false;
 
-    static final boolean USE_HW_LAYERS=false;
+    protected static final boolean USE_HW_LAYERS=false;
 
-    static final String LOG_TAG="PullToRefresh";
+    protected static final String LOG_TAG="PullToRefresh";
 
-    static final float FRICTION=2.0f;
+    protected static final float FRICTION=2.0f;
 
     public static final int SMOOTH_SCROLL_DURATION_MS=200;
     public static final int SMOOTH_SCROLL_LONG_DURATION_MS=325;
-    static final int DEMO_SCROLL_INTERVAL=225;
+    protected static final int DEMO_SCROLL_INTERVAL=225;
 
     static final String STATE_STATE="ptr_state";
     static final String STATE_MODE="ptr_mode";
@@ -70,7 +70,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
     private Mode mMode=Mode.getDefault();
 
     private Mode mCurrentMode;
-    T mRefreshableView;
+    protected T mRefreshableView;
     private FrameLayout mRefreshableViewWrapper;
 
     private boolean mShowViewWhileRefreshing=true;
