@@ -13,7 +13,6 @@ import com.huewu.pla.lib.internal.PLA_AbsListView.LayoutParams;
 import com.huewu.pla.lib.internal.PLA_AdapterView;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
-import com.me.archko.staggered.BaseFlickrPictureActivity;
 import com.me.archko.staggered.BaseLocalActivity;
 import com.me.archko.staggered.R;
 import com.me.archko.staggered.maurycyw.StaggeredFlickrImageAdapter;
@@ -25,7 +24,7 @@ import java.util.ArrayList;
 /**
  * @author archko
  */
-public class TestPlaLocalActivity extends BaseLocalActivity {
+public class TestPlaPTRLocalActivity extends BaseLocalActivity {
 
     private MultiColumnListView mAdapterView=null;
     private StaggeredFlickrImageAdapter mAdapter=null;
@@ -42,10 +41,10 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
             @Override
             public void onScrollStateChanged(PLA_AbsListView view, int scrollState) {
                 if (scrollState==SCROLL_STATE_IDLE) {
-                    ImageCache.getInstance(TestPlaLocalActivity.this).setPauseDiskCache(false);
+                    ImageCache.getInstance(TestPlaPTRLocalActivity.this).setPauseDiskCache(false);
                     mAdapter.notifyDataSetChanged();
                 } else {
-                    ImageCache.getInstance(TestPlaLocalActivity.this).setPauseDiskCache(true);
+                    ImageCache.getInstance(TestPlaPTRLocalActivity.this).setPauseDiskCache(true);
                 }
             }
 
@@ -81,7 +80,7 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
             public void onItemClick(PLA_AdapterView<?> parent, View view, int position, long id) {
                 Log.d("", "item:"+position+" image:");
                 FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
-                Util.startPictureViewer(flickrImage.getImageUrl(), TestPlaLocalActivity.this);
+                Util.startPictureViewer(flickrImage.getImageUrl(), TestPlaPTRLocalActivity.this);
             }
         });
         mAdapterView.setOnItemLongClickListener(new PLA_AdapterView.OnItemLongClickListener() {

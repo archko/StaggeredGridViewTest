@@ -135,6 +135,15 @@
         </activity>
 
         <activity
+            android:name=".huewupla.TestPlaPTRLocalActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_PlaPTRLocal">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".mani.TestManiActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_smani">
             <intent-filter>
