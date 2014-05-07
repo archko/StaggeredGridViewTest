@@ -20,14 +20,13 @@ package com.etsy.android.grid;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+
 /**
  * A {@link android.os.Parcelable} implementation that should be used by inheritance
  * hierarchies to ensure the state of all classes along the chain is saved.
  */
 public abstract class ClassLoaderSavedState implements Parcelable {
-
-    public static final ClassLoaderSavedState EMPTY_STATE=new ClassLoaderSavedState() {
-    };
+    public static final ClassLoaderSavedState EMPTY_STATE = new ClassLoaderSavedState() {};
 
     private Parcelable mSuperState=EMPTY_STATE;
     private ClassLoader mClassLoader;

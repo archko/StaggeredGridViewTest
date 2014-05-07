@@ -81,6 +81,7 @@ public abstract class ExtendableListView extends AbsListView {
     private int mLayoutMode;
 
     private int mTouchMode;
+    private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;
 
     // Rectangle used for hit testing children
     // private Rect mTouchFrame;
@@ -143,7 +144,6 @@ public abstract class ExtendableListView extends AbsListView {
      * or a footer at the bottom.
      */
     public class FixedViewInfo {
-
         /**
          * The view to add to the list
          */
@@ -160,6 +160,7 @@ public abstract class ExtendableListView extends AbsListView {
 
     private ArrayList<FixedViewInfo> mHeaderViewInfos;
     private ArrayList<FixedViewInfo> mFooterViewInfos;
+
 
     public ExtendableListView(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
@@ -183,6 +184,7 @@ public abstract class ExtendableListView extends AbsListView {
         // start our layout mode drawing from the top
         mLayoutMode=LAYOUT_NORMAL;
     }
+
 
     // //////////////////////////////////////////////////////////////////////////////////////////
     // MAINTAINING SOME STATE
@@ -227,7 +229,13 @@ public abstract class ExtendableListView extends AbsListView {
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        onSizeChanged(w, h);
+    }
+
+    protected void onSizeChanged(int w, int h) {
         if (getChildCount()>0) {
+            stopFlingRunnable();
+            mRecycleBin.clear();
             mDataChanged=true;
             rememberSyncState();
         }
@@ -605,6 +613,7 @@ public abstract class ExtendableListView extends AbsListView {
         }
     }
 
+
     @Override
     protected void handleDataChanged() {
         super.handleDataChanged();
@@ -701,6 +710,7 @@ public abstract class ExtendableListView extends AbsListView {
         return handled;
     }
 
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         int action=ev.getAction();
@@ -712,6 +722,7 @@ public abstract class ExtendableListView extends AbsListView {
             // in a bogus state.
             return false;
         }
+
 
         switch (action&MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN: {
@@ -862,6 +873,7 @@ public abstract class ExtendableListView extends AbsListView {
 
         return true;
     }
+
 
     private boolean onTouchCancel(final MotionEvent event) {
         mTouchMode=TOUCH_MODE_IDLE;
@@ -1038,12 +1050,9 @@ public abstract class ExtendableListView extends AbsListView {
                 // Check to see if we have bumped into the scroll limit
                 View motionView=this.getChildAt(motionIndex);
                 if (motionView!=null) {
-                    // Check if the top of the motion view is where it is
-                    // supposed to be
                     if (atEdge) {
-                        mTouchMode=TOUCH_MODE_DONE_WAITING;
+                        // TODO : edge effect & overscroll
                     }
-
                     mMotionY=y;
                 }
                 mLastY=y;
@@ -1270,7 +1279,7 @@ public abstract class ExtendableListView extends AbsListView {
         return selectedView;
     }
 
-    /**
+    /***
      * Override to tell filling flow to continue to fill up as we have space.
      */
     protected boolean hasSpaceDown() {
@@ -1295,7 +1304,7 @@ public abstract class ExtendableListView extends AbsListView {
         return selectedView;
     }
 
-    /**
+    /***
      * Override to tell filling flow to continue to fill up as we have space.
      */
     protected boolean hasSpaceUp() {
@@ -1486,6 +1495,7 @@ public abstract class ExtendableListView extends AbsListView {
         return layoutParams;
     }
 
+
     /**
      * Measures a child view in the list. Should call
      */
@@ -1546,6 +1556,7 @@ public abstract class ExtendableListView extends AbsListView {
 
         return child;
     }
+
 
     /**
      * Check if we have dragged the bottom of the list too high (we have pushed the
@@ -1836,7 +1847,6 @@ public abstract class ExtendableListView extends AbsListView {
      * A FlingRunnable will keep re-posting itself until the fling is done.
      */
     private class FlingRunnable implements Runnable {
-
         /**
          * Tracks the decay of a fling scroll
          */
@@ -1962,8 +1972,8 @@ public abstract class ExtendableListView extends AbsListView {
     }
 
     void reportScrollStateChange(int newState) {
-        if (newState!=mTouchMode) {
-            mTouchMode=newState;
+        if (newState != mScrollState) {
+            mScrollState = newState;
             if (mOnScrollListener!=null) {
                 mOnScrollListener.onScrollStateChanged(this, newState);
             }
@@ -2064,6 +2074,7 @@ public abstract class ExtendableListView extends AbsListView {
             mInstanceState=null;
         }
     }
+
 
     // //////////////////////////////////////////////////////////////////////////////////////////
     // LAYOUT PARAMS
@@ -2498,7 +2509,9 @@ public abstract class ExtendableListView extends AbsListView {
      */
     boolean mNeedSync=false;
 
+
     private ListSavedState mSyncState;
+
 
     /**
      * Remember enough information to restore the screen state when the data has
@@ -2550,7 +2563,6 @@ public abstract class ExtendableListView extends AbsListView {
     }
 
     public static class ListSavedState extends ClassLoaderSavedState {
-
         protected long selectedId;
         protected long firstId;
         protected int viewTop;
@@ -2608,6 +2620,7 @@ public abstract class ExtendableListView extends AbsListView {
             }
         };
     }
+
 
     @Override
     public Parcelable onSaveInstanceState() {
@@ -2676,7 +2689,6 @@ public abstract class ExtendableListView extends AbsListView {
     }
 
     private class PerformClick extends WindowRunnnable implements Runnable {
-
         int mClickMotionPosition;
 
         public void run() {
@@ -2701,7 +2713,6 @@ public abstract class ExtendableListView extends AbsListView {
      * the original window as when the Runnable was created.
      */
     private class WindowRunnnable {
-
         private int mOriginalAttachCount;
 
         public void rememberWindowAttachCount() {

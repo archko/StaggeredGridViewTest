@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
-    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
+    <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
     <application
         android:theme="@style/AppTheme"
         android:name="com.mani.staggeredview.demo.app.StaggeredDemoApplication"
@@ -107,9 +107,17 @@
             </intent-filter>
         </activity>
 
-        <activity
+        <!--<activity
             android:name=".etsy.TestEtsyActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_etsy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>-->
+        <activity
+            android:name=".etsy.TestEtsyLocalActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_etsy_local">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
@@ -144,13 +152,31 @@
         </activity>
 
         <activity
+            android:name=".huewupla.TestPla2LocalActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_PlaLocal2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
+
+        <!--<activity
             android:name=".mani.TestManiActivity" android:hardwareAccelerated="false"
             android:label="view/staggered/test_smani">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
             </intent-filter>
-        </activity>
+        </activity>-->
+
+        <!--<activity
+            android:name=".mani.TestManiLocalActivity" android:hardwareAccelerated="false"
+            android:label="view/staggered/test_smani_local">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>-->
 
         <activity
             android:name=".bulletnoid.TestSTGVWithPTRActivity" android:hardwareAccelerated="false"
