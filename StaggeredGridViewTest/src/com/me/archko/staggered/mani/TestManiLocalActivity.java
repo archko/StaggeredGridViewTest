@@ -83,6 +83,7 @@ public class TestManiLocalActivity extends BaseLocalActivity {
     @Override
     public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
         ArrayList<FlickrImage> list=super.parseFlickrImageResponse(response);
+        mStaggeredView.removeAllViews();
         for(int index=0;index<list.size();index++){
             FlickrImage flkrImage=list.get(index);
             StaggeredGridViewItem item=null;

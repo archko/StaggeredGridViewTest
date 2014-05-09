@@ -33,6 +33,7 @@
 
         <activity
             android:name="com.mani.staggeredview.demo.PictureActivity"
+            android:hardwareAccelerated="false"
             android:screenOrientation="portrait"/>
 
         <!-- androidstaggeredgrid -->
@@ -87,10 +88,10 @@
 
         <!-- test activity -->
         <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
-            android:hardwareAccelerated="false"
+           
             android:configChanges="orientation|screenSize|keyboardHidden|locale"/>
         <activity
-            android:name=".maurycyw.TestMasterActivity" android:hardwareAccelerated="false"
+            android:name=".maurycyw.TestMasterActivity"
             android:label="view/staggered/test_maurycyw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -99,7 +100,7 @@
         </activity>
 
         <activity
-            android:name=".maurycyw.TestMasterLocalActivity" android:hardwareAccelerated="false"
+            android:name=".maurycyw.TestMasterLocalActivity"
             android:label="view/staggered/test_maurycyw_local">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -108,7 +109,7 @@
         </activity>
 
         <!--<activity
-            android:name=".etsy.TestEtsyActivity" android:hardwareAccelerated="false"
+            android:name=".etsy.TestEtsyActivity"
             android:label="view/staggered/test_etsy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -116,7 +117,7 @@
             </intent-filter>
         </activity>-->
         <activity
-            android:name=".etsy.TestEtsyLocalActivity" android:hardwareAccelerated="false"
+            android:name=".etsy.TestEtsyLocalActivity"
             android:label="view/staggered/test_etsy_local">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -125,7 +126,7 @@
         </activity>
 
         <activity
-            android:name=".huewupla.TestPlaActivity" android:hardwareAccelerated="false"
+            android:name=".huewupla.TestPlaActivity"
             android:label="view/staggered/test_Pla">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -134,7 +135,7 @@
         </activity>
 
         <activity
-            android:name=".huewupla.TestPlaLocalActivity" android:hardwareAccelerated="false"
+            android:name=".huewupla.TestPlaLocalActivity"
             android:label="view/staggered/test_PlaLocal">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -143,7 +144,7 @@
         </activity>
 
         <activity
-            android:name=".huewupla.TestPlaPTRLocalActivity" android:hardwareAccelerated="false"
+            android:name=".huewupla.TestPlaPTRLocalActivity"
             android:label="view/staggered/test_PlaPTRLocal">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -152,7 +153,7 @@
         </activity>
 
         <activity
-            android:name=".huewupla.TestPla2LocalActivity" android:hardwareAccelerated="false"
+            android:name=".huewupla.TestPla2LocalActivity"
             android:label="view/staggered/test_PlaLocal2">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -161,7 +162,7 @@
         </activity>
 
         <!--<activity
-            android:name=".mani.TestManiActivity" android:hardwareAccelerated="false"
+            android:name=".mani.TestManiActivity"
             android:label="view/staggered/test_smani">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -170,7 +171,7 @@
         </activity>-->
 
         <!--<activity
-            android:name=".mani.TestManiLocalActivity" android:hardwareAccelerated="false"
+            android:name=".mani.TestManiLocalActivity"
             android:label="view/staggered/test_smani_local">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -179,7 +180,7 @@
         </activity>-->
 
         <activity
-            android:name=".bulletnoid.TestSTGVWithPTRActivity" android:hardwareAccelerated="false"
+            android:name=".bulletnoid.TestSTGVWithPTRActivity"
             android:label="view/staggered/test_stg_ptr">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -188,8 +189,8 @@
         </activity>
 
         <activity
-            android:name=".bulletnoid.TestNewStaggeredActivity" android:hardwareAccelerated="false"
-            android:label="view/staggered/test_stg_ptr_new">
+            android:name=".bulletnoid.TestNewStaggeredActivity"
+            android:label="view/staggered/test_stg_ptr_new_local">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="archko.test"/>
@@ -197,7 +198,7 @@
         </activity>
 
         <activity
-            android:name=".bulletnoid.TestNewStaggered2Activity" android:hardwareAccelerated="false"
+            android:name=".bulletnoid.TestNewStaggered2Activity"
             android:label="view/staggered/test_stg_ptr_new2">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

@@ -79,9 +79,10 @@ public class TestNewStaggered2Activity extends BaseLocalActivity {
         ArrayList<FlickrImage> list=super.parseFlickrImageResponse(response);
         if (null!=list) {
             mAdapter.setDatas(list);
-
-            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
         }
+        mAdapter.notifyDataSetChanged();
 
         return null;
     }

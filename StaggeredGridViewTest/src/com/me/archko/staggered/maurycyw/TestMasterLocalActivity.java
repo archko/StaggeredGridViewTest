@@ -73,8 +73,10 @@ public class TestMasterLocalActivity extends BaseLocalActivity {
         if (null!=list) {
             mAdapter.setDatas(list);
 
-            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
         }
+        mAdapter.notifyDataSetChanged();
 
         return null;
     }
@@ -86,7 +88,7 @@ public class TestMasterLocalActivity extends BaseLocalActivity {
         menu.add(0, Menu.FIRST+2, 2, "Three column");
         menu.add(0, Menu.FIRST+3, 3, "gif");
         menu.add(0, Menu.FIRST+4, 4, "picture");
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override

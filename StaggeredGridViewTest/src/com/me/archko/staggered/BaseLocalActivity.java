@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.andrew.apollo.utils.ApolloUtils;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
@@ -23,7 +25,9 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
     final int maxSize=4096000;
     final int minSize=4000;
     protected ArrayList<File> mDataList=new ArrayList<File>();
-    protected File dir=new File(Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture");
+    public static final String ak_path=Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture";
+    public static final String sina_path=Environment.getExternalStorageDirectory().getPath()+"/sina/weibo/.weibo_pic_new";
+    protected File dir=new File(ak_path);
 
     /**
      * This will not work so great since the heights of the imageViews
@@ -37,10 +41,31 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, Menu.FIRST+104, 0, "换目录");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id=item.getItemId();
+        if (id==Menu.FIRST+104) {
+            if (dir.getAbsolutePath().endsWith(ak_path)) {
+                dir=new File(sina_path);
+            } else {
+                dir=new File(ak_path);
+            }
+            initData();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void flickerGetImagesRequest() {
         ApolloUtils.execute(false, new AsyncTask<Object, Object, Object>() {
             @Override
             protected Object doInBackground(Object... params) {
+                Log.d("", "file path:"+dir);
                 if (dir.exists()) {
                     File[] files=dir.listFiles(new FileFilter() {
                         @Override
@@ -57,7 +82,9 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
                             return false;
                         }
                     });
+                    Log.d("", "file length:"+files.length);
                     if (files.length>0) {
+                        mDataList.clear();
                         for (File f : files) {
                             mDataList.add(f);
                         }
@@ -80,6 +107,7 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
 
     @Override
     public ArrayList<FlickrImage> parseFlickrImageResponse(FlickrResponsePhotos response) {
+        Log.d("local", "parseFlickrImageResponse:"+mDataList);
         ArrayList<FlickrImage> list=new ArrayList<FlickrImage>();
         File tmp;
         for (int index=0; index<mDataList.size(); index++) {
@@ -104,7 +132,8 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
                     public void onClick(DialogInterface arg0, int arg1) {
                         arg0.cancel();
                     }
-                }).setPositiveButton(getResources().getString(R.string.confirm),
+                }
+            ).setPositiveButton(getResources().getString(R.string.confirm),
             new DialogInterface.OnClickListener() {
 
                 @Override
@@ -112,7 +141,8 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
                     delete(pos);
                     arg0.cancel();
                 }
-            }).create().show();
+            }
+        ).create().show();
     }
 
     private void delete(final int pos) {

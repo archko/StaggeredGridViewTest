@@ -62,8 +62,10 @@ public class TestEtsyLocalActivity extends BaseLocalActivity implements AbsListV
         if (null!=list) {
             mAdapter.setDatas(list);
 
-            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
         }
+        mAdapter.notifyDataSetChanged();
 
         return null;
     }

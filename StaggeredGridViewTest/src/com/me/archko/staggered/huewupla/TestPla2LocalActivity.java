@@ -94,8 +94,8 @@ public class TestPla2LocalActivity extends BaseLocalActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(Menu.NONE, 1001, 0, "Load More Contents");
-        menu.add(Menu.NONE, 1002, 0, "Launch Pull-To-Refresh Activity");
+        /*menu.add(Menu.NONE, 1001, 0, "Load More Contents");
+        menu.add(Menu.NONE, 1002, 0, "Launch Pull-To-Refresh Activity");*/
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -139,8 +139,10 @@ public class TestPla2LocalActivity extends BaseLocalActivity {
         if (null!=list) {
             mAdapter.setDatas(list);
 
-            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
         }
+        mAdapter.notifyDataSetChanged();
 
         return null;
     }

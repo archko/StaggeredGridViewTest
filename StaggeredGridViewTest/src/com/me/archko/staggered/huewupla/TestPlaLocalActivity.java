@@ -142,8 +142,10 @@ public class TestPlaLocalActivity extends BaseLocalActivity {
         if (null!=list) {
             mAdapter.setDatas(list);
 
-            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
         }
+        mAdapter.notifyDataSetChanged();
 
         return null;
     }
