@@ -52,8 +52,9 @@ public class TestPla2LocalActivity extends BaseLocalActivity {
             }
         });*/
 
+        final int headerCount=2;
         {
-            for (int i=0; i<2; ++i) {
+            for (int i=0; i<headerCount; ++i) {
                 //add header view.
                 TextView tv=new TextView(this);
                 tv.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -77,14 +78,14 @@ public class TestPla2LocalActivity extends BaseLocalActivity {
             @Override
             public void onItemClick(PLA_AdapterView2<?> parent, View view, int position, long id) {
                 Log.d("", "item:"+position+" image:");
-                FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
+                FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position-headerCount);
                 Util.startPictureViewer(flickrImage.getImageUrl(), TestPla2LocalActivity.this);
             }
         });
         mAdapterView.setOnItemLongClickListener(new PLA_AdapterView2.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(PLA_AdapterView2<?> parent, View view, int position, long id) {
-                FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
+                FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position-headerCount);
                 deleteDialog(getString(R.string.dialog_title)+" size:"+(flickrImage.filesize/1000)+"k", R.string.dialog_msg, position);
                 return true;
             }
