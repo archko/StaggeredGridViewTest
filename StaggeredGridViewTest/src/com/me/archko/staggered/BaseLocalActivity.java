@@ -26,7 +26,7 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
     final int minSize=4000;
     protected ArrayList<File> mDataList=new ArrayList<File>();
     public static final String ak_path=Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture";
-    public static final String sina_path=Environment.getExternalStorageDirectory().getPath()+"/sina/weibo/.weibo_pic_new";
+    public static final String sina_path=Environment.getExternalStorageDirectory().getPath()+"/gifshow/.cache";
     protected File dir=new File(ak_path);
 
     /**
