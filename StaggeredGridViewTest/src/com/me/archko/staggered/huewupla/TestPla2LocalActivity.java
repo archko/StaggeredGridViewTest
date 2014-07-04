@@ -125,7 +125,7 @@ public class TestPla2LocalActivity extends BaseLocalActivity {
             }
             break;
         }*/
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

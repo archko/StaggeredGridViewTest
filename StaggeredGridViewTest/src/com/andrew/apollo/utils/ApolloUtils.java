@@ -27,7 +27,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
+//import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
@@ -38,6 +38,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import cn.archko.thread.AsyncTask;
 import com.andrew.apollo.cache.ImageCache;
 import com.andrew.apollo.cache.ImageFetcher;
 
@@ -159,13 +160,29 @@ public final class ApolloUtils {
      * @param <T> Task argument type
      */
     @SuppressLint("NewApi")
-    public static <T> void execute(final boolean forceSerial, final AsyncTask<T, ?, ?> task,
+    public static <T> void execute(final boolean forceSerial, final android.os.AsyncTask<T, ?, ?> task,
             final T... args) {
-        final WeakReference<AsyncTask<T, ?, ?>> taskReference = new WeakReference<AsyncTask<T, ?, ?>>(
+        final WeakReference<android.os.AsyncTask<T, ?, ?>> taskReference = new WeakReference<android.os.AsyncTask<T, ?, ?>>(
                 task);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.DONUT) {
             throw new UnsupportedOperationException(
                     "This class can only be used on API 4 and newer.");
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB || forceSerial) {
+            taskReference.get().execute(args);
+        } else {
+            taskReference.get().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, args);
+        }
+    }
+
+    @SuppressLint("NewApi")
+    public static <T> void executeCustomTask(final boolean forceSerial, final AsyncTask<T, ?, ?> task,
+        final T... args) {
+        final WeakReference<AsyncTask<T, ?, ?>> taskReference = new WeakReference<AsyncTask<T, ?, ?>>(
+            task);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.DONUT) {
+            throw new UnsupportedOperationException(
+                "This class can only be used on API 4 and newer.");
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB || forceSerial) {
             taskReference.get().execute(args);

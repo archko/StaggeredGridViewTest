@@ -19,9 +19,10 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.AsyncTask;
+//import android.os.AsyncTask;
 import android.widget.ImageView;
 
+import cn.archko.thread.AsyncTask;
 import com.andrew.apollo.utils.ApolloUtils;
 import com.me.archko.staggered.R;
 
@@ -395,7 +396,7 @@ public abstract class ImageWorker {
             if (isScrolling()) {
                 cancelWork(imageView);
             } else {
-                ApolloUtils.execute(false, bitmapWorkerTask, key);
+                ApolloUtils.executeCustomTask(false, bitmapWorkerTask, key);
             }
         }
     }
