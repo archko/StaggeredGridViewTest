@@ -87,7 +87,7 @@
         </activity>-->
 
         <!-- test activity -->
-        <activity android:name=".PictureViewerActivity" android:screenOrientation="sensor"
+        <activity android:name=".PictureViewerActivity"
            
             android:configChanges="orientation|screenSize|keyboardHidden|locale"/>
         <activity

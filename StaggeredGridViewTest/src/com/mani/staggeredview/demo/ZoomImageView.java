@@ -1,5 +1,13 @@
 package com.mani.staggeredview.demo;
 
+import android.app.Activity;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.VelocityTracker;
+import android.view.ViewConfiguration;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -11,6 +19,7 @@ import android.util.FloatMath;
 import android.view.MotionEvent;
 import android.view.View.OnTouchListener;
 import android.view.View;
+import android.widget.Scroller;
 
 public class ZoomImageView extends ImageView implements OnTouchListener {
 
@@ -35,8 +44,9 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 	public ZoomImageView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 
-		setOnTouchListener(this);
+		//setOnTouchListener(this);
 		setScaleType(ScaleType.MATRIX);
+        initView(context);
 	}
 
 	public ZoomImageView(Context context, AttributeSet attrs) {
@@ -50,7 +60,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
-		if (isInit == false){
+		if (!isInit){
 			init();
 			isInit = true;
 		}
@@ -78,8 +88,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 	}
 
 	protected void init() {
-		matrixTurning(matrix, this);
-		setImageMatrix(matrix);
+        updateMatrix();
 		setImagePit();
 	}
 
@@ -142,7 +151,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 			break;
 		case MotionEvent.ACTION_POINTER_DOWN:
 			oldDist = spacing(event);
-			if (oldDist > 10f) {
+			if (oldDist > 1f) {
 				savedMatrix.set(matrix);
 				midPoint(mid, event);
 				mode = ZOOM;
@@ -161,7 +170,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 			}
 			else if (mode == ZOOM) {
 				float newDist = spacing(event);
-				if (newDist > 10f) {
+				if (newDist > 1f) {
 					matrix.set(savedMatrix);
 					float scale = newDist / oldDist;
 					matrix.postScale(scale, scale, mid.x, mid.y);
@@ -255,4 +264,281 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
 		matrix.setValues(value);
 		savedMatrix2.set(matrix);
 	}
+
+    protected Scroller mScroller;
+    protected int mTouchSlop;
+    protected int mMinimumVelocity;
+    protected int mMaximumVelocity;
+
+    protected float mLastMotionX;
+    protected float mLastMotionY;
+    protected boolean mIsBeingDragged;
+    protected VelocityTracker mVelocityTracker;
+    protected int mActivePointerId=INVALID_POINTER;
+
+    protected static final int INVALID_POINTER=-1;
+    int screenWidth=480;
+    int screenHeight=800;
+
+    private void initView(Context cx) {
+        //设置滚动减速器，在fling中会用到
+        mScroller=new Scroller(cx, new DecelerateInterpolator(0.5f));
+        final ViewConfiguration configuration=ViewConfiguration.get(cx);
+        mTouchSlop=configuration.getScaledTouchSlop();
+        mMinimumVelocity=configuration.getScaledMinimumFlingVelocity();
+        mMaximumVelocity=configuration.getScaledMaximumFlingVelocity();
+
+        DisplayMetrics screen = new DisplayMetrics();
+        ((Activity)cx).getWindowManager().getDefaultDisplay().getMetrics(screen);
+        screenWidth=screen.widthPixels;
+        screenHeight=screen.heightPixels;
+    }
+
+    /**
+     * 此方法为最后机会来修改mScrollX,mScrollY.
+     * 这方法后将根据mScrollX,mScrollY来偏移Canvas已实现内容滚动
+     */
+    @Override
+    public void computeScroll() {
+        //super.computeScroll();
+        //computeScrollImpl();
+        if (mScroller.computeScrollOffset()) {
+            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            postInvalidate();
+        }
+    }
+
+    protected void computeScrollImpl() {
+        final Scroller scroller=mScroller;
+        if (scroller.computeScrollOffset()) { //正在滚动，让view滚动到当前位置
+            int scrollY=scroller.getCurrY();
+            int scrollX=scroller.getCurrX();
+
+            float[] value = new float[9];
+            matrix.getValues(value);
+
+            Drawable d = getDrawable();
+            if (d == null)  return;
+            int imageWidth = d.getIntrinsicWidth();
+            int imageHeight = d.getIntrinsicHeight();
+            int scaleWidth = (int) (imageWidth * value[0]);
+            int scaleHeight = (int) (imageHeight * value[4]);
+
+            int maxY=scaleHeight-screenHeight;
+            int maxX=scaleWidth-screenWidth;
+            /*if (maxX<0){
+                maxX=0;
+            }
+            if (maxY<0){
+                maxY=0;
+            }*/
+            boolean toEdge=scrollY<0||scrollY>maxY;
+            if (scrollY<0) {
+                //scrollY=0;
+            } else if (scrollY>maxY) {
+                scrollY=maxY;
+            }
+
+            toEdge=toEdge||scrollX<0||scrollX>maxX;
+            if (scrollX<0) {
+                //scrollX=0;
+            } else if (scrollX>maxX) {
+                scrollX=maxX;
+            }
+
+            if (scrollY<10){
+            }
+
+            /*
+             *下面等同于：
+             * mScrollY = scrollY;
+             * awakenScrollBars(); //显示滚动条，必须在xml中配置。
+             * postInvalidate();
+             */
+            scrollTo(scrollX, scrollY);
+            if (toEdge) {//移到两端，由于位置没有发生变化，导致滚动条不显示
+                awakenScrollBars();
+            }
+        }
+    }
+
+    RectF rect;
+    public void fling(int velocityX, int velocityY) {
+        float[] value=new float[9];
+        matrix.getValues(value);
+
+        Drawable d=getDrawable();
+        if (d==null) return;
+        int imageWidth=d.getIntrinsicWidth();
+        int imageHeight=d.getIntrinsicHeight();
+        int scaleWidth=(int) (imageWidth*value[0]);
+        int scaleHeight=(int) (imageHeight*value[4]);
+
+        /*int maxY=scaleHeight-screenHeight;
+        int maxX=scaleWidth-screenWidth;*/
+
+        if (null==rect){
+            rect=new RectF(0, 0, screenWidth, screenHeight);
+        }
+        rect.set(0, 0, d.getIntrinsicWidth(),
+            d.getIntrinsicHeight());
+        matrix.mapRect(rect);
+
+        final int startX = Math.round(-rect.left);
+        final int minX, maxX, minY, maxY;
+
+        if (screenWidth < rect.width()) {
+            minX = 0;
+            maxX = Math.round(rect.width() - screenWidth);
+        } else {
+            minX = maxX = startX;
+        }
+
+        final int startY = Math.round(-rect.top);
+        if (screenHeight < rect.height()) {
+            minY = 0;
+            maxY = Math.round(rect.height() - screenHeight);
+        } else {
+            minY = maxY = startY;
+        }
+
+        Log.d(VIEW_LOG_TAG, String.format("imageWidth:%d,imageHeight:%d,minX:%d,maxX:%d, minY:%d, maxY:%d",
+            imageWidth, imageHeight, minX, maxX, minY, maxY)+
+        " rect:"+rect+" screenWidth:"+screenWidth+" screenHeight:"+screenHeight+" scaleWidth:"+scaleWidth+" scaleHeight:"+scaleHeight);
+        if (startX != maxX || startY!=maxY) {
+                mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX, velocityY, minX, Math.max(0, maxX), minY,
+                    Math.max(0, maxY));
+        }
+
+        //刷新，让父控件调用computeScroll()
+        invalidate();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        boolean handled=false;
+        handled=processScroll(event);
+
+        return handled|super.onTouchEvent(event);
+    }
+
+    protected boolean processScroll(MotionEvent ev) {
+        boolean handled=false;
+        if (mVelocityTracker==null) {
+            mVelocityTracker=VelocityTracker.obtain();
+        }
+        mVelocityTracker.addMovement(ev); //帮助类，用来在fling时计算移动初速度
+
+        final int action=ev.getAction();
+
+        switch (action&MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN: {
+                if (!mScroller.isFinished()) {
+                    mScroller.forceFinished(true);
+                }
+
+                mLastMotionX=ev.getX();
+                mLastMotionY=ev.getY();
+                mActivePointerId=ev.getPointerId(0);
+                mIsBeingDragged=true;
+                handled=true;
+
+                savedMatrix.set(matrix);
+                start.set(ev.getX(), ev.getY());
+                mode = NONE;
+                break;
+            }
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                oldDist=spacing(ev);
+                if (oldDist>1f) {
+                    savedMatrix.set(matrix);
+                    midPoint(mid, ev);
+                    mode=ZOOM;
+                    mIsBeingDragged=false;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                final int pointerId=mActivePointerId;
+                if (mIsBeingDragged&&INVALID_POINTER!=pointerId) {
+                    final int pointerIndex=ev.findPointerIndex(pointerId);
+                    float y=0;
+                    float x=0;
+                    try {
+                        y=ev.getY(pointerIndex);
+                        x=ev.getX(pointerIndex);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    int deltaY=(int) (mLastMotionY-y);
+                    int delatX=(int) (mLastMotionX-x);
+
+                    //if (Math.abs(deltaY)>mTouchSlop) { //移动距离(正负代表方向)必须大于ViewConfiguration设置的默认值,但是会卡.
+                    mLastMotionX=x;
+                    mLastMotionY=y;
+
+                    /*
+                     * 默认滚动时间为250ms，建议立即滚动，否则滚动效果不明显
+                     * 或者直接使用scrollBy(0, deltaY);
+                     */
+                    //if (delatX>0||deltaY>0) {
+                        mScroller.startScroll(getScrollX(), getScrollY(), delatX, deltaY, 0);
+                        Log.d(VIEW_LOG_TAG, "move:scrollx:"+getScrollX()+" getScrollY:"+getScrollY()+" cx:"+mScroller.getCurrX()+" delatX:"+delatX+" deltaY:"+deltaY);
+                        invalidate();
+                        handled=true;
+                    //}
+                    //}
+                }
+                if (mode == ZOOM) {
+                    float newDist = spacing(ev);
+                    if (newDist > 1f) {
+                        matrix.set(savedMatrix);
+                        float scale = newDist / oldDist;
+                        matrix.postScale(scale, scale, mid.x, mid.y);
+                    }
+                    updateMatrix();
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                final int pointerId=mActivePointerId;
+                if (mIsBeingDragged&&INVALID_POINTER!=pointerId) {
+                    final VelocityTracker velocityTracker=mVelocityTracker;
+                    velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                    int initialVelocityX=(int) velocityTracker.getXVelocity(pointerId);
+                    int initialVelocityY=(int) velocityTracker.getYVelocity(pointerId);
+
+                    if (Math.abs(initialVelocityY)>mMinimumVelocity||Math.abs(initialVelocityX)>mMinimumVelocity) {
+                        Log.d(VIEW_LOG_TAG, "ACTION_UP:"+mMinimumVelocity+" scrollX:"+getScrollX()+" getScrollY:"+getScrollY()+" initialVelocityX:"+initialVelocityX+" initialVelocityY:"+initialVelocityY);
+                        fling(-initialVelocityX, -initialVelocityY);
+                    } else {
+                        //可以在这里恢复位置,比如不能超出边界.
+                    }
+
+                    mActivePointerId=INVALID_POINTER;
+                    mIsBeingDragged=false;
+
+                    if (mVelocityTracker!=null) {
+                        mVelocityTracker.recycle();
+                        mVelocityTracker=null;
+                    }
+
+                    handled=true;
+                }
+                mode = NONE;
+                break;
+            }
+            case MotionEvent.ACTION_POINTER_UP:
+                mode = NONE;
+                break;
+        }
+
+        return handled;
+    }
+
+    private void updateMatrix() {
+        matrixTurning(matrix, this);
+        setImageMatrix(matrix);
+    }
+
 }

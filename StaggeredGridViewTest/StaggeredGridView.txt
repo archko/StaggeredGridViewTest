@@ -176,3 +176,82 @@ ListView中主要的方法是布局.与选择块的处理.还有header/footer.�
 
 
 
+07-08 08:12:09: D: imageWidth:220,imageHeight:3295,minX:0,maxX:101, minY:0, maxY:15764 rect:RectF(-76.282135, -5423.4805, 1104.4406, 12260.523) screenWidth:1080 screenHeight:1920 scaleWidth:1180 scaleHeight:17684
+
+从左向右快速拖动;会回到左边,但不是左边缘是因为fling导致的.
+07-08 15:44:53: D: move:scrollx:0 getScrollY:0 delatX:0 deltaY:0
+07-08 15:44:53: D: move:scrollx:0 getScrollY:0 delatX:-10 deltaY:1
+07-08 15:44:53: D: move:scrollx:-10 getScrollY:1 delatX:-27 deltaY:-2
+07-08 15:44:53: D: move:scrollx:-37 getScrollY:-1 delatX:-41 deltaY:-11
+07-08 15:44:53: D: move:scrollx:-78 getScrollY:-12 delatX:-47 deltaY:-16
+07-08 15:44:53: D: move:scrollx:-125 getScrollY:-28 delatX:-60 deltaY:-25
+07-08 15:44:53: D: move:scrollx:-185 getScrollY:-53 delatX:-66 deltaY:-30
+07-08 15:44:53: D: move:scrollx:-251 getScrollY:-83 delatX:-74 deltaY:-41
+07-08 15:44:53: D: move:scrollx:-325 getScrollY:-124 delatX:-68 deltaY:-45
+07-08 15:44:53: D: move:scrollx:-393 getScrollY:-169 delatX:-112 deltaY:-79
+07-08 15:44:53: D: move:scrollx:-505 getScrollY:-248 delatX:-116 deltaY:-68
+07-08 15:44:53: D: move:scrollx:-621 getScrollY:-316 delatX:-81 deltaY:-60
+07-08 15:44:53: D: move:scrollx:-702 getScrollY:-376 delatX:0 deltaY:0
+07-08 15:44:53: D: ACTION_UP:-376 initialVelocityX:6945 initialVelocityY:4847
+07-08 15:44:53: D: imageWidth:690,imageHeight:977,minX:0,maxX:648, minY:0, maxY:527 rect:RectF(-265.97473, -83.3678, 1462.4268, 2363.9487) screenWidth:1080 screenHeight:1920 scaleWidth:1728 scaleHeight:2447
+
+scroller与getScrollX得到的结果是一样的.fling计算还是不对
+07-08 15:54:01: D: move:scrollx:-43 getScrollY:597 cx:-43 delatX:-1 deltaY:-6
+07-08 15:54:01: D: move:scrollx:-44 getScrollY:591 cx:-44 delatX:-10 deltaY:-37
+07-08 15:54:01: D: move:scrollx:-54 getScrollY:554 cx:-54 delatX:-18 deltaY:-76
+07-08 15:54:01: D: move:scrollx:-72 getScrollY:478 cx:-72 delatX:-7 deltaY:-96
+07-08 15:54:01: D: move:scrollx:-79 getScrollY:382 cx:-79 delatX:-10 deltaY:-110
+07-08 15:54:01: D: move:scrollx:-89 getScrollY:272 cx:-89 delatX:-14 deltaY:-121
+07-08 15:54:01: D: move:scrollx:-103 getScrollY:151 cx:-103 delatX:-19 deltaY:-131
+07-08 15:54:01: D: move:scrollx:-122 getScrollY:20 cx:-122 delatX:-23 deltaY:-140
+07-08 15:54:01: D: move:scrollx:-145 getScrollY:-120 cx:-145 delatX:-30 deltaY:-147
+07-08 15:54:01: D: ACTION_UP:150 scrollX:-175 getScrollY:-267 initialVelocityX:1877 initialVelocityY:9235
+07-08 15:54:01: D: imageWidth:220,imageHeight:3295,minX:0,maxX:91, minY:0, maxY:15620 rect:RectF(-39.319275, -5281.583, 1131.8127, 12258.78) screenWidth:1080 screenHeight:1920 scaleWidth:1171 scaleHeight:17540
+计算方法:
+=======================================
+float[] value=new float[9];
+matrix.getValues(value);
+
+Drawable d=getDrawable();
+if (d==null) return;
+int imageWidth=d.getIntrinsicWidth();
+int imageHeight=d.getIntrinsicHeight();
+int scaleWidth=(int) (imageWidth*value[0]);
+int scaleHeight=(int) (imageHeight*value[4]);
+
+/*int maxY=scaleHeight-screenHeight;
+int maxX=scaleWidth-screenWidth;*/
+
+if (null==rect){
+    rect=new RectF(0, 0, screenWidth, screenHeight);
+}
+rect.set(0, 0, d.getIntrinsicWidth(),
+    d.getIntrinsicHeight());
+matrix.mapRect(rect);
+
+final int startX = Math.round(-rect.left);
+final int minX, maxX, minY, maxY;
+
+if (screenWidth < rect.width()) {
+    minX = 0;
+    maxX = Math.round(rect.width() - screenWidth);
+} else {
+    minX = maxX = startX;
+}
+
+final int startY = Math.round(-rect.top);
+if (screenHeight < rect.height()) {
+    minY = 0;
+    maxY = Math.round(rect.height() - screenHeight);
+} else {
+    minY = maxY = startY;
+}
+
+Log.d(VIEW_LOG_TAG, String.format("imageWidth:%d,imageHeight:%d,minX:%d,maxX:%d, minY:%d, maxY:%d",
+    imageWidth, imageHeight, minX, maxX, minY, maxY)+
+" rect:"+rect+" screenWidth:"+screenWidth+" screenHeight:"+screenHeight+" scaleWidth:"+scaleWidth+" scaleHeight:"+scaleHeight);
+if (startX != maxX || startY!=maxY) {
+        mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX, velocityY, minX, Math.max(0, maxX), minY,
+            Math.max(0, maxY));
+}
+=======================================
