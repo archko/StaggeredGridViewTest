@@ -305,6 +305,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             postInvalidate();
+            awakenScrollBars();
         }
     }
 
@@ -380,8 +381,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
         if (null==rect){
             rect=new RectF(0, 0, screenWidth, screenHeight);
         }
-        rect.set(0, 0, d.getIntrinsicWidth(),
-            d.getIntrinsicHeight());
+        rect.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
         matrix.mapRect(rect);
 
         final int startX = Math.round(-rect.left);
@@ -401,13 +401,17 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
         } else {
             minY = maxY = startY;
         }
+        /*move:scrollx:-19 getScrollY:-640 cx:-19 delatX:2 deltaY:-141
+        ACTION_UP:150 scrollX:-17 getScrollY:-781 initialVelocityX:-264 initialVelocityY:11726
+        imageW:220,imageH:3295,minX:-13,maxX:-13, minY:0, maxY:1478, startX:-13, startY:-1509 RectF(12.915283, 1508.5526, 239.79324, 4906.566)
+        screenW:1080 screenH:1920 scaleW:226 scaleH:3398*/
 
-        Log.d(VIEW_LOG_TAG, String.format("imageWidth:%d,imageHeight:%d,minX:%d,maxX:%d, minY:%d, maxY:%d",
-            imageWidth, imageHeight, minX, maxX, minY, maxY)+
-        " rect:"+rect+" screenWidth:"+screenWidth+" screenHeight:"+screenHeight+" scaleWidth:"+scaleWidth+" scaleHeight:"+scaleHeight);
-        if (startX != maxX || startY!=maxY) {
-                mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX, velocityY, minX, Math.max(0, maxX), minY,
-                    Math.max(0, maxY));
+        Log.d(VIEW_LOG_TAG, String.format("imageW:%d,imageH:%d,minX:%d,maxX:%d, minY:%d, maxY:%d, startX:%d, startY:%d",
+            imageWidth, imageHeight, minX, maxX, minY, maxY, startX, startY)+
+            " "+rect+" screenW:"+screenWidth+" screenH:"+screenHeight+" scaleW:"+scaleWidth+" scaleH:"+scaleHeight);
+        if (startX!=maxX||startY!=maxY) {
+            mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX-maxX/2, velocityY-maxY/2, minX, Math.max(0, maxX), minY,
+                Math.max(0, maxY));
         }
 
         //刷新，让父控件调用computeScroll()
@@ -481,12 +485,13 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                      * 默认滚动时间为250ms，建议立即滚动，否则滚动效果不明显
                      * 或者直接使用scrollBy(0, deltaY);
                      */
-                    //if (delatX>0||deltaY>0) {
+                    if (delatX>0||deltaY>0) {
+
                         mScroller.startScroll(getScrollX(), getScrollY(), delatX, deltaY, 0);
                         Log.d(VIEW_LOG_TAG, "move:scrollx:"+getScrollX()+" getScrollY:"+getScrollY()+" cx:"+mScroller.getCurrX()+" delatX:"+delatX+" deltaY:"+deltaY);
                         invalidate();
                         handled=true;
-                    //}
+                    }
                     //}
                 }
                 if (mode == ZOOM) {
@@ -497,6 +502,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                         matrix.postScale(scale, scale, mid.x, mid.y);
                     }
                     updateMatrix();
+                    handled=true;
                 }
                 break;
             }
@@ -508,8 +514,11 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                     int initialVelocityX=(int) velocityTracker.getXVelocity(pointerId);
                     int initialVelocityY=(int) velocityTracker.getYVelocity(pointerId);
 
-                    if (Math.abs(initialVelocityY)>mMinimumVelocity||Math.abs(initialVelocityX)>mMinimumVelocity) {
+                    if (Math.max(Math.abs(initialVelocityX), Math.abs(initialVelocityY)) >= mMinimumVelocity) {
                         Log.d(VIEW_LOG_TAG, "ACTION_UP:"+mMinimumVelocity+" scrollX:"+getScrollX()+" getScrollY:"+getScrollY()+" initialVelocityX:"+initialVelocityX+" initialVelocityY:"+initialVelocityY);
+                        matrix.set(savedMatrix);
+                        matrix.postTranslate(mLastMotionX - start.x, mLastMotionY - start.y);
+                        updateMatrix();
                         fling(-initialVelocityX, -initialVelocityY);
                     } else {
                         //可以在这里恢复位置,比如不能超出边界.
@@ -530,6 +539,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
             }
             case MotionEvent.ACTION_POINTER_UP:
                 mode = NONE;
+                handled=true;
                 break;
         }
 
