@@ -106,7 +106,7 @@ public class TestEtsyLocalActivity extends BaseLocalActivity implements AbsListV
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
         //Toast.makeText(this, "Item Clicked: "+position, Toast.LENGTH_SHORT).show();
-        FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position);
+        FlickrImage flickrImage=(FlickrImage) mAdapter.getItem(position-mGridView.getHeaderViewsCount());
         Log.d(TAG, "item:"+position+" image:"+flickrImage);
         Util.startPictureViewer(flickrImage.getImageUrl(), TestEtsyLocalActivity.this);
     }
