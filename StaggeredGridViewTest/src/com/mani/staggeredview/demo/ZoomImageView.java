@@ -410,7 +410,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
             imageWidth, imageHeight, minX, maxX, minY, maxY, startX, startY)+
             " "+rect+" screenW:"+screenWidth+" screenH:"+screenHeight+" scaleW:"+scaleWidth+" scaleH:"+scaleHeight);
         if (startX!=maxX||startY!=maxY) {
-            mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX-maxX/2, velocityY-maxY/2, minX, Math.max(0, maxX), minY,
+            mScroller.fling(mScroller.getCurrX(), mScroller.getCurrY(), velocityX, velocityY, minX, Math.max(0, maxX), minY,
                 Math.max(0, maxY));
         }
 
@@ -485,6 +485,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                      * 默认滚动时间为250ms，建议立即滚动，否则滚动效果不明显
                      * 或者直接使用scrollBy(0, deltaY);
                      */
+                    start.set(delatX, deltaY);  //这个很关键,可以去除越界的问题
                     if (delatX>0||deltaY>0) {
 
                         mScroller.startScroll(getScrollX(), getScrollY(), delatX, deltaY, 0);
@@ -519,6 +520,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                         matrix.set(savedMatrix);
                         matrix.postTranslate(mLastMotionX - start.x, mLastMotionY - start.y);
                         updateMatrix();
+                        start.set(mLastMotionX, mLastMotionY);
                         fling(-initialVelocityX, -initialVelocityY);
                     } else {
                         //可以在这里恢复位置,比如不能超出边界.
