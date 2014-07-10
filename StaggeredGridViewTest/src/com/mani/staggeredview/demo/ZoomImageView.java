@@ -485,13 +485,13 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                      * 默认滚动时间为250ms，建议立即滚动，否则滚动效果不明显
                      * 或者直接使用scrollBy(0, deltaY);
                      */
-                    start.set(delatX, deltaY);  //这个很关键,可以去除越界的问题
                     if (delatX!=0&&deltaY!=0) {
                         //Log.d(VIEW_LOG_TAG, "move:scrollx:"+getScrollX()+" getScrollY:"+getScrollY()+" cx:"+mScroller.getCurrX()+" delatX:"+delatX+" deltaY:"+deltaY);
-                        mScroller.startScroll(mScroller.getCurrX(), mScroller.getCurrY(), delatX, deltaY, 0);
+                        mScroller.startScroll(getScrollX(), getScrollY(), delatX, deltaY, 0);
                         invalidate();
                         handled=true;
                     }
+                    start.set(delatX, deltaY);  //这个很关键,可以去除越界的问题
                     //}
                 }
                 if (mode == ZOOM) {
