@@ -304,8 +304,8 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
         //computeScrollImpl();
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-            postInvalidate();
             awakenScrollBars();
+            postInvalidate();
         }
     }
 
@@ -448,7 +448,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                 handled=true;
 
                 savedMatrix.set(matrix);
-                start.set(ev.getX(), ev.getY());
+                start.set(mLastMotionX, mLastMotionY);
                 mode = NONE;
                 break;
             }
@@ -486,10 +486,9 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                      * 或者直接使用scrollBy(0, deltaY);
                      */
                     start.set(delatX, deltaY);  //这个很关键,可以去除越界的问题
-                    if (delatX>0||deltaY>0) {
-
-                        mScroller.startScroll(getScrollX(), getScrollY(), delatX, deltaY, 0);
-                        Log.d(VIEW_LOG_TAG, "move:scrollx:"+getScrollX()+" getScrollY:"+getScrollY()+" cx:"+mScroller.getCurrX()+" delatX:"+delatX+" deltaY:"+deltaY);
+                    if (delatX!=0&&deltaY!=0) {
+                        //Log.d(VIEW_LOG_TAG, "move:scrollx:"+getScrollX()+" getScrollY:"+getScrollY()+" cx:"+mScroller.getCurrX()+" delatX:"+delatX+" deltaY:"+deltaY);
+                        mScroller.startScroll(mScroller.getCurrX(), mScroller.getCurrY(), delatX, deltaY, 0);
                         invalidate();
                         handled=true;
                     }
@@ -500,6 +499,7 @@ public class ZoomImageView extends ImageView implements OnTouchListener {
                     if (newDist > 1f) {
                         matrix.set(savedMatrix);
                         float scale = newDist / oldDist;
+                        //Log.d(VIEW_LOG_TAG, "mid:"+mid);
                         matrix.postScale(scale, scale, mid.x, mid.y);
                     }
                     updateMatrix();
