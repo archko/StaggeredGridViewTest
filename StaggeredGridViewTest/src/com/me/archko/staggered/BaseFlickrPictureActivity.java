@@ -141,7 +141,7 @@ public class BaseFlickrPictureActivity extends Activity {
         mVolleyQueue.add(gsonObjRequest);
     }
 
-    private void loadLocalJson() {
+    public void loadLocalJson() {
         ApolloUtils.execute(false, new AsyncTask<Object, Object, FlickrResponsePhotos>() {
             @Override
             protected FlickrResponsePhotos doInBackground(Object... params) {

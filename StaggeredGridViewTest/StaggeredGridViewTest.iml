@@ -66,7 +66,17 @@
     <orderEntry type="module" module-name="bulletnoidStaggeredGridViewLibrary" />
     <orderEntry type="module" module-name="maurycywStaggeredGridView" />
     <orderEntry type="module" module-name="StaggeredGridView-master" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/android-support-v7-recyclerview.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="PinterestLikeAdapterViewLibrary" />
+    <orderEntry type="module" module-name="twoway-core" />
+    <orderEntry type="module" module-name="twoway-layouts" />
   </component>
 </module>
-

@@ -28,4 +28,10 @@
     <color name="btn_default_normal_holo_dark_color2">#FFB0B0B0</color>
 
     <color name="gridview_bg">#ffd6d8e3</color>
+
+
+    <color name="item_border_color">#666666</color>
+    <color name="item_default_color">#EEEEEE</color>
+    <color name="item_pressed_color">#CCCCCC</color>
+    <color name="item_activated_color">#77CEEE</color>
 </resources>

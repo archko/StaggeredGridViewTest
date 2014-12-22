@@ -26,8 +26,8 @@ public class BaseLocalActivity extends BaseFlickrPictureActivity {
     final int minSize=4000;
     protected ArrayList<File> mDataList=new ArrayList<File>();
     public static final String ak_path=Environment.getExternalStorageDirectory().getPath()+"/.microblog/picture";
-    public static final String sina_path=Environment.getExternalStorageDirectory().getPath()+"/gifshow/.cache";
-    protected File dir=new File(ak_path);
+    public static final String sina_path=Environment.getExternalStorageDirectory().getPath()+"/sina/weibo/.prenew";
+    protected File dir=new File(sina_path);
 
     /**
      * This will not work so great since the heights of the imageViews

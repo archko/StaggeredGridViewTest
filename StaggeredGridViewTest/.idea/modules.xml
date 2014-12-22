@@ -3,12 +3,14 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../AndroidStaggeredGridLibrary/AndroidStaggeredGridLibrary.iml" filepath="$PROJECT_DIR$/../AndroidStaggeredGridLibrary/AndroidStaggeredGridLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../PinterestLikeAdapterViewLibrary/PinterestLikeAdapterViewLibrary.iml" filepath="$PROJECT_DIR$/../PinterestLikeAdapterViewLibrary/PinterestLikeAdapterViewLibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/../StaggeredGridView-master/StaggeredGridView-master.iml" filepath="$PROJECT_DIR$/../StaggeredGridView-master/StaggeredGridView-master.iml" />
       <module fileurl="file://$PROJECT_DIR$/StaggeredGridViewTest.iml" filepath="$PROJECT_DIR$/StaggeredGridViewTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/../bulletnoidStaggeredGridViewLibrary/bulletnoidStaggeredGridViewLibrary.iml" filepath="$PROJECT_DIR$/../bulletnoidStaggeredGridViewLibrary/bulletnoidStaggeredGridViewLibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/../maurycywStaggeredGridView/maurycywStaggeredGridView.iml" filepath="$PROJECT_DIR$/../maurycywStaggeredGridView/maurycywStaggeredGridView.iml" />
       <module fileurl="file://$PROJECT_DIR$/../smanikandan14library/smanikandan14library.iml" filepath="$PROJECT_DIR$/../smanikandan14library/smanikandan14library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../twoway-core/twoway-core.iml" filepath="$PROJECT_DIR$/../twoway-core/twoway-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../twoway-layouts/twoway-layouts.iml" filepath="$PROJECT_DIR$/../twoway-layouts/twoway-layouts.iml" />
     </modules>
   </component>
 </project>
-

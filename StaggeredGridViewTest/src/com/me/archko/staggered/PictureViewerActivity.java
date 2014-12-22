@@ -29,9 +29,9 @@ public class PictureViewerActivity extends Activity {
         mPicture=(ZoomImageView) findViewById(R.id.image);
         mClose=(ImageView) findViewById(R.id.close);
         mPicture.setAdjustViewBounds(false);
-        if (ApolloUtils.hasHoneycomb()) {
+        /*if (ApolloUtils.hasHoneycomb()) {
             mPicture.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
+        }*/
 
         String imageUrl=null;
         Bundle b=getIntent().getExtras();
