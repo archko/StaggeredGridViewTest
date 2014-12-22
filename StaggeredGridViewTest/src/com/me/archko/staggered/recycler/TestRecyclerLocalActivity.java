@@ -2,9 +2,12 @@ package com.me.archko.staggered.recycler;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import com.mani.staggeredview.demo.model.FlickrImage;
@@ -14,6 +17,7 @@ import com.me.archko.staggered.R;
 import com.me.archko.staggered.utils.Util;
 import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.widget.DividerItemDecoration;
+import org.lucasr.twowayview.widget.StaggeredGridLayoutManager;
 import org.lucasr.twowayview.widget.TwoWayView;
 
 import java.io.File;
@@ -60,7 +64,7 @@ public class TestRecyclerLocalActivity extends BaseLocalActivity {
             public void onItemClick(RecyclerView parent, View child, int position, long id) {
                 /*mToast.setText("Item clicked: " + position);
                 mToast.show();*/
-                FlickrImage flickrImage=(FlickrImage) mAdapter.getItems().get(position);
+                FlickrImage flickrImage = (FlickrImage) mAdapter.getItems().get(position);
                 Log.d("", "item:" + position + " image:" + flickrImage);
                 Util.startPictureViewer(flickrImage.getImageUrl(), TestRecyclerLocalActivity.this);
             }
@@ -108,6 +112,41 @@ public class TestRecyclerLocalActivity extends BaseLocalActivity {
         mAdapter.notifyDataSetChanged();
 
         return null;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.clear();
+        menu.add(0, Menu.FIRST, 0, "One column");
+        menu.add(0, Menu.FIRST + 1, 1, "Two column");
+        menu.add(0, Menu.FIRST + 3, 3, "gif");
+        menu.add(0, Menu.FIRST + 4, 4, "picture");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == Menu.FIRST) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+            staggeredGridLayoutManager.setNumColumns(1);
+        } else if (id == Menu.FIRST + 1) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+            staggeredGridLayoutManager.setNumColumns(2);
+        } else if (id == Menu.FIRST + 3) {
+            dir = new File(Environment.getExternalStorageDirectory().getPath() + "/.microblog/gif");
+            mDataList.clear();
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
+            mAdapter.notifyDataSetChanged();
+            initData();
+        } else if (id == Menu.FIRST + 4) {
+            dir = new File(Environment.getExternalStorageDirectory().getPath() + "/.microblog/picture");
+            mDataList.clear();
+            mAdapter.setDatas(new ArrayList<FlickrImage>());
+            mAdapter.notifyDataSetChanged();
+            initData();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public File doDelete(int pos) {
