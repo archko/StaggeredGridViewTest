@@ -94,8 +94,11 @@ public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
         menu.clear();
         menu.add(0, Menu.FIRST, 0, "One column");
         menu.add(0, Menu.FIRST + 1, 1, "Two column");
+        menu.add(0, Menu.FIRST + 2, 2, "Three column");
         menu.add(0, Menu.FIRST + 3, 3, "gif");
         menu.add(0, Menu.FIRST + 4, 4, "picture");
+        menu.add(0, Menu.FIRST + 5, 5, "vertical");
+        menu.add(0, Menu.FIRST + 6, 6, "horizontal");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -108,6 +111,9 @@ public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
         } else if (id == Menu.FIRST + 1) {
             StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
             staggeredGridLayoutManager.setSpanCount(2);
+        } else if (id == Menu.FIRST + 2) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+            staggeredGridLayoutManager.setSpanCount(3);
         } else if (id == Menu.FIRST + 3) {
             dir = new File(Environment.getExternalStorageDirectory().getPath() + "/.microblog/gif");
             mDataList.clear();
@@ -120,6 +126,12 @@ public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
             mAdapter.setDatas(new ArrayList<FlickrImage>());
             mAdapter.notifyDataSetChanged();
             initData();
+        } else if (id == Menu.FIRST + 5) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+            staggeredGridLayoutManager.setOrientation(StaggeredGridLayoutManager.VERTICAL);
+        } else if (id == Menu.FIRST + 6) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
+            staggeredGridLayoutManager.setOrientation(StaggeredGridLayoutManager.HORIZONTAL);
         }
         return super.onOptionsItemSelected(item);
     }
