@@ -214,5 +214,14 @@
                 <category android:name="archko.test"/>
             </intent-filter>
         </activity>
+
+        <activity
+                android:name=".recycler.TestStaggeredRecyclerLocalActivity"
+                android:label="view/staggered/test_staggered_recycler1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="archko.test"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

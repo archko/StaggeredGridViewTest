@@ -28,24 +28,21 @@ import com.andrew.apollo.utils.ApolloUtils;
 import com.example.staggeredgridviewdemo.views.ScaleImageView;
 import com.mani.staggeredview.demo.model.FlickrImage;
 import com.me.archko.staggered.R;
-import org.lucasr.twowayview.TwoWayLayoutManager;
-import org.lucasr.twowayview.widget.TwoWayView;
-import org.lucasr.twowayview.widget.SpannableGridLayoutManager;
-import org.lucasr.twowayview.widget.StaggeredGridLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LayoutAdapter extends RecyclerView.Adapter<LayoutAdapter.SimpleViewHolder> {
+
     private static final int COUNT = 100;
 
     private final Context mContext;
-    private final TwoWayView mRecyclerView;
     private List<FlickrImage> mItems;
     private final int mLayoutId;
     private int mCurrentItemId = 0;
 
     public static class SimpleViewHolder extends RecyclerView.ViewHolder {
+
         public final TextView title;
         public ScaleImageView imageView;
 
@@ -57,19 +54,15 @@ public class LayoutAdapter extends RecyclerView.Adapter<LayoutAdapter.SimpleView
         }
     }
 
-    public LayoutAdapter(Context context, TwoWayView recyclerView, int layoutId) {
+    public LayoutAdapter(Context context, int layoutId) {
         mContext = context;
-        /*for (int i = 0; i < COUNT; i++) {
-            addItem(i);
-        }*/
 
-        mRecyclerView = recyclerView;
         mLayoutId = layoutId;
-        mItems=new ArrayList<FlickrImage>();
+        mItems = new ArrayList<FlickrImage>();
     }
 
     public void setDatas(ArrayList<FlickrImage> mDatas) {
-        this.mItems=mDatas;
+        this.mItems = mDatas;
     }
 
     public List<FlickrImage> getItems() {
@@ -94,12 +87,12 @@ public class LayoutAdapter extends RecyclerView.Adapter<LayoutAdapter.SimpleView
 
     @Override
     public void onBindViewHolder(SimpleViewHolder holder, int position) {
-        FlickrImage flickrImage=(FlickrImage) mItems.get(position);
+        FlickrImage flickrImage = (FlickrImage) mItems.get(position);
         //mLoader.DisplayImage(getItem(position), holder.imageView);
         ApolloUtils.getImageFetcher(mContext).startLoadImage(flickrImage.getImageUrl(), holder.imageView);
-        String title=flickrImage.getTitle();
-        if (0!=flickrImage.filesize) {
-            title+=" size:"+flickrImage.filesize;
+        String title = flickrImage.getTitle();
+        if (0 != flickrImage.filesize) {
+            title += " size:" + flickrImage.filesize;
         }
         holder.title.setText(title);
     }

@@ -1,15 +1,11 @@
 package com.example.staggeredgridviewdemo.views;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View.MeasureSpec;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
-import android.widget.RelativeLayout;
 
 /**
  * 
@@ -119,8 +115,8 @@ public class ScaleImageView extends ImageView {
 				int marg = 0;
 				if(getParent()!=null){
 					if(getParent().getParent()!=null){
-						marg+= ((RelativeLayout) getParent().getParent()).getPaddingTop();
-						marg+= ((RelativeLayout) getParent().getParent()).getPaddingBottom();
+						marg+= ((ViewGroup) getParent().getParent()).getPaddingTop();
+						marg+= ((ViewGroup) getParent().getParent()).getPaddingBottom();
 					}
 				}
 				

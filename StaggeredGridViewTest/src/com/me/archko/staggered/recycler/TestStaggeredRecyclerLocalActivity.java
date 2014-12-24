@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,22 +15,17 @@ import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
 import com.me.archko.staggered.BaseLocalActivity;
 import com.me.archko.staggered.R;
 import com.me.archko.staggered.utils.Util;
-import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.widget.DividerItemDecoration;
-import org.lucasr.twowayview.widget.StaggeredGridLayoutManager;
-import org.lucasr.twowayview.widget.TwoWayView;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
-
 /**
  * @author archko
  */
-public class TestRecyclerLocalActivity extends BaseLocalActivity {
+public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
 
-    private TwoWayView mRecyclerView;
+    private RecyclerView mRecyclerView;
     private Toast mToast;
     LayoutAdapter mAdapter;
 
@@ -43,30 +38,23 @@ public class TestRecyclerLocalActivity extends BaseLocalActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_staggered_grid);
+        setContentView(R.layout.layout_staggered_recycler);
         mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         mToast.setGravity(Gravity.CENTER, 0, 0);
 
-        mRecyclerView = (TwoWayView) findViewById(R.id.list);
+        mRecyclerView = (RecyclerView) findViewById(R.id.list);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLongClickable(true);
+        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 
-        /*mPositionText = (TextView) view.getRootView().findViewById(R.id.position);
-        mCountText = (TextView) view.getRootView().findViewById(R.id.count);
-
-        mStateText = (TextView) view.getRootView().findViewById(R.id.state);*/
-        //updateState(SCROLL_STATE_IDLE);
-
-        final ItemClickSupport itemClick = ItemClickSupport.addTo(mRecyclerView);
+        /*final ItemClickSupport itemClick = ItemClickSupport.addTo(mRecyclerView);
 
         itemClick.setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClick(RecyclerView parent, View child, int position, long id) {
-                /*mToast.setText("Item clicked: " + position);
-                mToast.show();*/
                 FlickrImage flickrImage = (FlickrImage) mAdapter.getItems().get(position);
                 Log.d("", "item:" + position + " image:" + flickrImage);
-                Util.startPictureViewer(flickrImage.getImageUrl(), TestRecyclerLocalActivity.this);
+                Util.startPictureViewer(flickrImage.getImageUrl(), TestStaggeredRecyclerLocalActivity.this);
             }
         });
 
@@ -77,23 +65,10 @@ public class TestRecyclerLocalActivity extends BaseLocalActivity {
                 mToast.show();
                 return true;
             }
-        });
-
-        /*mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int scrollState) {
-                updateState(scrollState);
-            }
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int i, int i2) {
-                mPositionText.setText("First: " + mRecyclerView.getFirstVisiblePosition());
-                mCountText.setText("Count: " + mRecyclerView.getChildCount());
-            }
         });*/
 
         final Drawable divider = getResources().getDrawable(R.drawable.divider);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(divider));
+        //mRecyclerView.addItemDecoration(new DividerItemDecoration(divider));
 
         mAdapter = new LayoutAdapter(this, 0);
         mRecyclerView.setAdapter(mAdapter);
@@ -129,10 +104,10 @@ public class TestRecyclerLocalActivity extends BaseLocalActivity {
         int id = item.getItemId();
         if (id == Menu.FIRST) {
             StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
-            staggeredGridLayoutManager.setNumColumns(1);
+            staggeredGridLayoutManager.setSpanCount(1);
         } else if (id == Menu.FIRST + 1) {
             StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) mRecyclerView.getLayoutManager();
-            staggeredGridLayoutManager.setNumColumns(2);
+            staggeredGridLayoutManager.setSpanCount(2);
         } else if (id == Menu.FIRST + 3) {
             dir = new File(Environment.getExternalStorageDirectory().getPath() + "/.microblog/gif");
             mDataList.clear();
