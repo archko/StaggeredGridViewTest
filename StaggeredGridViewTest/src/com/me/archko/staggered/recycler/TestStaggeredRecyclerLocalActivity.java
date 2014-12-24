@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +16,7 @@ import com.mani.staggeredview.demo.model.FlickrResponsePhotos;
 import com.me.archko.staggered.BaseLocalActivity;
 import com.me.archko.staggered.R;
 import com.me.archko.staggered.utils.Util;
+import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.widget.DividerItemDecoration;
 
 import java.io.File;
@@ -47,7 +49,7 @@ public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
         mRecyclerView.setLongClickable(true);
         mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 
-        /*final ItemClickSupport itemClick = ItemClickSupport.addTo(mRecyclerView);
+        final ItemClickSupport itemClick = ItemClickSupport.addTo(mRecyclerView);
 
         itemClick.setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
@@ -65,7 +67,7 @@ public class TestStaggeredRecyclerLocalActivity extends BaseLocalActivity {
                 mToast.show();
                 return true;
             }
-        });*/
+        });
 
         final Drawable divider = getResources().getDrawable(R.drawable.divider);
         //mRecyclerView.addItemDecoration(new DividerItemDecoration(divider));
